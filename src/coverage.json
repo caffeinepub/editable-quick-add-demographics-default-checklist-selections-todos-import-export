@@ -1,95 +1,40 @@
 {
   "kind": "coverage_report",
   "version": "1.0",
-  "generatedAt": "2026-02-15T20:43:30.867Z",
+  "generatedAt": "2026-02-15T21:05:28.840Z",
   "sources": {
     "buildRequest": true,
     "implementationPlan": true
   },
   "requirements": {
-    "total": 5,
-    "implemented": 5,
+    "total": 1,
+    "implemented": 1,
     "items": [
       {
-        "id": "REQ-10",
-        "summary": "Update the Quick Add Demographics flow so users can edit the parsed demographic field values (e.g., MRN, patient name, DOB, species, breed, sex, arrival date) in the Quick Add preview before applying them to the case form, and then apply the edited values to the form.",
+        "id": "REQ-1",
+        "summary": "When creating a new case, detect if the entered MRN matches an existing case in the cases list and (1) alert the user and (2) automatically populate MRN, date of birth, patient first name, patient last name, species, breed, and sex from the most recent existing case with that MRN.",
         "status": "implemented",
         "plannedFiles": [
-          "frontend/src/components/cases/QuickAddDemographics.tsx"
+          "frontend/src/pages/NewCasePage.tsx",
+          "frontend/src/components/cases/CaseForm.tsx",
+          "frontend/src/utils/caseMatching.ts"
         ],
         "matchedFiles": [
-          "frontend/src/components/cases/QuickAddDemographics.tsx"
-        ]
-      },
-      {
-        "id": "REQ-11",
-        "summary": "Change the New Case default checklist selection so that “Discharge Notes Complete” and “pDVM Notified” are checked by default when creating a new case (but do not change defaults when editing an existing case).",
-        "status": "implemented",
-        "plannedFiles": [
-          "frontend/src/components/cases/CaseForm.tsx"
-        ],
-        "matchedFiles": [
-          "frontend/src/components/cases/CaseForm.tsx"
-        ]
-      },
-      {
-        "id": "REQ-12",
-        "summary": "Implement checklist-to-todos behavior: when creating a new case, any checklist item that is checked at submission time is saved to the case record as a “to do” item; the case record must then display and manage these “to do” items on the Case Detail page.",
-        "status": "implemented",
-        "plannedFiles": [
-          "frontend/src/hooks/useQueries.ts",
-          "frontend/src/components/cases/ToDoSection.tsx",
-          "frontend/src/pages/CaseDetailPage.tsx"
-        ],
-        "matchedFiles": [
-          "frontend/src/hooks/useQueries.ts",
-          "frontend/src/components/cases/ToDoSection.tsx",
-          "frontend/src/pages/CaseDetailPage.tsx"
-        ]
-      },
-      {
-        "id": "REQ-13",
-        "summary": "Add data export and import capabilities for surgery cases so a user can export all saved cases to a file and import cases from a file back into the app.",
-        "status": "implemented",
-        "plannedFiles": [
-          "frontend/src/hooks/useQueries.ts",
-          "frontend/src/pages/CaseListPage.tsx"
-        ],
-        "matchedFiles": [
-          "frontend/src/hooks/useQueries.ts",
-          "frontend/src/pages/CaseListPage.tsx"
-        ]
-      },
-      {
-        "id": "REQ-14",
-        "summary": "Add sorting controls to the Surgery Cases list allowing users to sort cases by date (arrival date) and at least one additional field (e.g., MRN or patient name).",
-        "status": "implemented",
-        "plannedFiles": [
-          "frontend/src/pages/CaseListPage.tsx"
-        ],
-        "matchedFiles": [
-          "frontend/src/pages/CaseListPage.tsx"
+          "frontend/src/pages/NewCasePage.tsx",
+          "frontend/src/components/cases/CaseForm.tsx",
+          "frontend/src/utils/caseMatching.ts"
         ]
       }
     ]
   },
   "changedFiles": [
-    "backend/main.mo",
-    "backend/migration.mo",
     "build-request.json",
     "feature_evidence.json",
     "frontend-file-summaries.txt",
     "frontend-implementation-plan.json",
-    "frontend/src/backend.d.ts",
-    "frontend/src/backend.ts",
     "frontend/src/components/cases/CaseForm.tsx",
-    "frontend/src/components/cases/QuickAddDemographics.tsx",
-    "frontend/src/components/cases/ToDoSection.tsx",
-    "frontend/src/declarations/backend.did.d.ts",
-    "frontend/src/declarations/backend.did.js",
-    "frontend/src/hooks/useQueries.ts",
-    "frontend/src/pages/CaseDetailPage.tsx",
-    "frontend/src/pages/CaseListPage.tsx",
+    "frontend/src/pages/NewCasePage.tsx",
+    "frontend/src/utils/caseMatching.ts",
     "project_state.json",
     "scratch/component-selection.json",
     "spec.md",

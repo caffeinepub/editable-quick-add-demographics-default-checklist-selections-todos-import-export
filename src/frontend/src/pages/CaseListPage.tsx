@@ -10,6 +10,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Search, Plus, FileText, Download, Upload } from 'lucide-react';
 import { formatDate } from '../utils/dateTime';
 import { toast } from 'sonner';
+import { parseCsvToSurgeryCases } from '../utils/surgeryCaseCsvImport';
 import type { SurgeryCase, Species } from '../backend';
 
 type SortOption = 'arrival-newest' | 'arrival-oldest' | 'mrn-asc';
@@ -96,32 +97,55 @@ export default function CaseListPage() {
 
     try {
       const text = await file.text();
-      const data = JSON.parse(text);
+      const fileExtension = file.name.split('.').pop()?.toLowerCase();
       
-      // Validate that it's an array
-      if (!Array.isArray(data)) {
-        toast.error('Invalid file format: expected an array of cases');
+      let casesToImport: SurgeryCase[];
+      
+      if (fileExtension === 'csv') {
+        // Parse CSV
+        try {
+          casesToImport = parseCsvToSurgeryCases(text);
+        } catch (error: any) {
+          toast.error(error.message || 'Failed to parse CSV file');
+          return;
+        }
+      } else if (fileExtension === 'json') {
+        // Parse JSON
+        const data = JSON.parse(text);
+        
+        // Validate that it's an array
+        if (!Array.isArray(data)) {
+          toast.error('Invalid file format: expected an array of cases');
+          return;
+        }
+
+        // Convert bigint fields from JSON (they come as strings or numbers)
+        casesToImport = data.map((c: any) => ({
+          ...c,
+          id: BigInt(c.id),
+          arrivalDate: BigInt(c.arrivalDate),
+          todos: c.todos?.map((t: any) => ({
+            ...t,
+            id: BigInt(t.id),
+          })) || [],
+        }));
+      } else {
+        toast.error('Unsupported file format. Please use .json or .csv files.');
         return;
       }
 
-      // Convert bigint fields from JSON (they come as strings or numbers)
-      const casesWithBigInts = data.map((c: any) => ({
-        ...c,
-        id: BigInt(c.id),
-        arrivalDate: BigInt(c.arrivalDate),
-        todos: c.todos?.map((t: any) => ({
-          ...t,
-          id: BigInt(t.id),
-        })) || [],
-      }));
-
-      await importCases.mutateAsync(casesWithBigInts);
-      toast.success(`Successfully imported ${casesWithBigInts.length} case(s)`);
-    } catch (error) {
-      toast.error('Failed to import cases. Please check the file format.');
+      await importCases.mutateAsync(casesToImport);
+      toast.success(`Successfully imported ${casesToImport.length} case(s)`);
+    } catch (error: any) {
+      if (error.message && error.message.includes('CSV validation failed')) {
+        // CSV validation error already has detailed message
+        toast.error(error.message);
+      } else {
+        toast.error('Failed to import cases. Please check the file format.');
+      }
       console.error('Import error:', error);
     } finally {
-      // Reset file input
+      // Reset file input so the same file can be selected again
       if (fileInputRef.current) {
         fileInputRef.current.value = '';
       }
@@ -170,7 +194,7 @@ export default function CaseListPage() {
           <input
             ref={fileInputRef}
             type="file"
-            accept=".json"
+            accept=".json,.csv"
             onChange={handleFileChange}
             className="hidden"
           />

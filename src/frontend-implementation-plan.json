@@ -1,102 +1,33 @@
 {
   "kind": "implementation_plan",
   "version": "1.0",
-  "title": "Editable Quick Add preview, new-case checklist defaults, checklist-to-todos, import/export, and sortable case list",
+  "title": "Duplicate MRN alert and demographics auto-fill on New Case",
   "requirements": [
     {
-      "id": "REQ-10",
-      "summary": "Make Quick Add Demographics preview fields editable before applying to the CaseForm.",
+      "id": "REQ-1",
+      "summary": "On New Case creation, detect duplicate MRN from the fetched cases list, toast an alert once per MRN change, and auto-fill demographics from the most recent matching prior case.",
       "acceptanceCriteria": [
-        "After parsing pasted/scanned text, the Quick Add preview renders editable inputs for each parsed field value (not only read-only text).",
-        "Edits made in the Quick Add preview are applied to the CaseForm fields when the user clicks “Apply to Form”.",
-        "Using Quick Add does not auto-save; the user can still review and edit fields in the CaseForm before submitting."
+        "On the New Case page, entering an MRN that already exists in the fetched cases list triggers a user-visible alert in English (e.g., a toast).",
+        "After the duplicate MRN is detected, the CaseForm fields are auto-set to the matched case’s values for: MRN, date of birth, patient first name, patient last name, species, breed, and sex.",
+        "When multiple cases share the same MRN, the form uses the most recent prior entry (define and implement as the case with the greatest arrivalDate; if tied/unavailable, fall back to the greatest id).",
+        "The auto-fill/alert behavior only runs for new-case creation (i.e., when CaseForm has no initialData) and does not interfere with editing an existing case.",
+        "The alert does not repeatedly fire on every render for the same MRN value (e.g., it should fire once per MRN entry/change)."
       ],
       "file_operations": [
         {
-          "path": "frontend/src/components/cases/QuickAddDemographics.tsx",
+          "path": "frontend/src/pages/NewCasePage.tsx",
           "operation": "modify",
-          "description": "Replace the read-only 'Preview Changes' rendering with an editable preview model (local state initialized from parsed results) using existing shadcn-ui form primitives (e.g., Input/Textarea/Select) so users can adjust MRN/name/DOB/species/breed/sex/arrival date before applying. Ensure the Apply action sends the edited values to onApply and continues to avoid any auto-save. Continue to use the selected camera component hook (camera/useCamera.ts) for capture/OCR flow; verify the component's usage instructions before implementing."
-        }
-      ]
-    },
-    {
-      "id": "REQ-11",
-      "summary": "Default “Discharge Notes Complete” and “pDVM Notified” to checked on New Case only (no override when editing).",
-      "acceptanceCriteria": [
-        "On the New Case page, the checklist checkboxes for “Discharge Notes Complete” and “pDVM Notified” are checked by default.",
-        "On the Case Detail edit page, existing saved values continue to load without being overridden by defaults."
-      ],
-      "file_operations": [
+          "description": "Fetch the existing cases list (via the existing query hook) and pass it into CaseForm as an optional prop used only during new-case creation; keep user-facing text in English. Use the existing shadcn-ui toast/sonner setup already present in the app for any page-level messaging if needed. Verify the component's usage instructions before implementing."
+        },
         {
           "path": "frontend/src/components/cases/CaseForm.tsx",
           "operation": "modify",
-          "description": "Adjust react-hook-form defaultValues so dischargeNotesComplete and pdvmNotified default to true only when initialData is not provided (new case), and use the persisted values when initialData exists (edit case)."
-        }
-      ]
-    },
-    {
-      "id": "REQ-12",
-      "summary": "Convert checked checklist items into saved to-do items on create, and display/manage to-dos on Case Detail without losing membership.",
-      "acceptanceCriteria": [
-        "Backend: The case data model persists which checklist items are “to do” items for each case (not inferred solely from the completion booleans).",
-        "Frontend: On New Case, checked checklist items at submit time become “to do” items on the saved record.",
-        "Frontend: On Case Detail, there is a visible “To Do” section that lists the saved to-do items for that case.",
-        "Frontend: Toggling completion for a to-do item updates the saved case state consistently (e.g., marks it complete) without losing which items are part of the to-do list.",
-        "Existing cases created before this change continue to load without errors (migration handled as needed)."
-      ],
-      "file_operations": [
-        {
-          "path": "frontend/src/hooks/useQueries.ts",
-          "operation": "modify",
-          "description": "Update the create-case mutation to pass a todoDescriptions array derived from which checklist booleans are checked at submit time (mapping the existing checklist labels to descriptions). Update the update-case mutation so it does not drop existing todos (include todos when saving edits). Add React Query mutations for to-do management (toggle completion, add, delete) and invalidate relevant case queries on success."
+          "description": "Add optional input for the fetched cases list and implement duplicate-MRN detection for new-case mode only (when initialData is absent). On MRN change, find the most recent matching case (greatest arrivalDate, then greatest id), show a one-time-per-MRN toast alert in English using the existing toast/sonner integration, and auto-set fields (mrn, dateOfBirth, patientFirstName, patientLastName, species, breed, sex) via react-hook-form setValue without affecting edit flows. Verify the component's usage instructions before implementing."
         },
         {
-          "path": "frontend/src/components/cases/ToDoSection.tsx",
+          "path": "frontend/src/utils/caseMatching.ts",
           "operation": "create",
-          "description": "Create a Case Detail 'To Do' UI section component that lists the case's saved todos and supports: toggling completion, adding a new to-do by description, and deleting a to-do item. Use existing shadcn-ui components for inputs/buttons/checkboxes; verify the component's usage instructions before implementing."
-        },
-        {
-          "path": "frontend/src/pages/CaseDetailPage.tsx",
-          "operation": "modify",
-          "description": "Wire the new ToDoSection into the Case Detail page so the user can view and manage saved to-dos. Ensure the CaseForm update flow preserves todos when updating non-todo fields (e.g., pass current todos into the update mutation) and that existing cases with empty todos arrays render without errors."
-        }
-      ]
-    },
-    {
-      "id": "REQ-13",
-      "summary": "Add UI actions to export all cases to a JSON file and import cases from a JSON file with clear success/failure messaging.",
-      "acceptanceCriteria": [
-        "Frontend provides an “Export” action that downloads all cases into a file in a standard format (JSON is acceptable).",
-        "Frontend provides an “Import” action that lets the user select a file and import cases, showing a clear success/failure message in English.",
-        "Backend exposes APIs to export all cases and to import cases; import updates persistent canister state.",
-        "Import handles IDs safely (no collisions) and maintains correct behavior for creating new cases after import (e.g., next ID increments properly)."
-      ],
-      "file_operations": [
-        {
-          "path": "frontend/src/hooks/useQueries.ts",
-          "operation": "modify",
-          "description": "Add React Query helpers/mutations for exportCases and importCases so the UI can download the current full dataset and submit imported data, with proper cache invalidation of the cases list after import."
-        },
-        {
-          "path": "frontend/src/pages/CaseListPage.tsx",
-          "operation": "modify",
-          "description": "Add 'Export' and 'Import' actions to the Surgery Cases list page. Export should request all cases and trigger a JSON file download. Import should allow selecting a JSON file, parse/validate it as a cases array, call the import capability, and show clear English success/failure toasts; refresh the visible list after import."
-        }
-      ]
-    },
-    {
-      "id": "REQ-14",
-      "summary": "Add sort controls to the case list for arrival date (newest/oldest) and at least one non-date field.",
-      "acceptanceCriteria": [
-        "Case list page includes a sort control with at least: Arrival Date (newest first), Arrival Date (oldest first), and one non-date sort option.",
-        "Changing the sort option reorders the visible list without breaking search/filtering.",
-        "Default sorting is clearly defined and consistent (e.g., Arrival Date newest first)."
-      ],
-      "file_operations": [
-        {
-          "path": "frontend/src/pages/CaseListPage.tsx",
-          "operation": "modify",
-          "description": "Introduce a sort control (using existing shadcn-ui Select) with default 'Arrival Date (newest first)', plus 'Arrival Date (oldest first)' and a non-date sort (e.g., MRN or patient name). Apply sorting after the existing search filtering so search remains functional, and ensure the chosen default is consistently applied."
+          "description": "Introduce a small utility to select the most recent case for a given MRN (compare by arrivalDate desc, then id desc; handle empty/whitespace MRNs safely) to keep CaseForm logic clear and consistent with the acceptance criteria."
         }
       ]
     }

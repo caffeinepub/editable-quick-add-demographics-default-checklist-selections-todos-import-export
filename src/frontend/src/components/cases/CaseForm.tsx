@@ -1,4 +1,5 @@
 import { useForm } from 'react-hook-form';
+import { useEffect, useRef } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -8,6 +9,8 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { Separator } from '@/components/ui/separator';
 import { getTodayDateString, dateStringToTime, timeToDateString } from '../../utils/dateTime';
 import QuickAddDemographics from './QuickAddDemographics';
+import { findMostRecentCaseByMRN } from '../../utils/caseMatching';
+import { toast } from 'sonner';
 import type { SurgeryCase, Species, Sex } from '../../backend';
 import type { ParsedDemographics } from '../../utils/demographicsParser';
 
@@ -35,11 +38,13 @@ interface CaseFormProps {
   onSubmit: (data: CaseFormData) => void;
   onCancel: () => void;
   isSubmitting?: boolean;
+  existingCases?: SurgeryCase[];
 }
 
-export default function CaseForm({ initialData, onSubmit, onCancel, isSubmitting }: CaseFormProps) {
+export default function CaseForm({ initialData, onSubmit, onCancel, isSubmitting, existingCases = [] }: CaseFormProps) {
   const defaultArrivalDate = initialData ? timeToDateString(initialData.arrivalDate) : getTodayDateString();
   const isNewCase = !initialData;
+  const lastCheckedMRN = useRef<string>('');
   
   const { register, handleSubmit, watch, setValue, getValues, formState: { errors } } = useForm<{
     mrn: string;
@@ -79,6 +84,7 @@ export default function CaseForm({ initialData, onSubmit, onCancel, isSubmitting
     },
   });
 
+  const mrn = watch('mrn');
   const species = watch('species');
   const sex = watch('sex');
   const dischargeNotesComplete = watch('dischargeNotesComplete');
@@ -88,6 +94,40 @@ export default function CaseForm({ initialData, onSubmit, onCancel, isSubmitting
   const surgeryReportComplete = watch('surgeryReportComplete');
   const imagingComplete = watch('imagingComplete');
   const cultureComplete = watch('cultureComplete');
+
+  // Duplicate MRN detection and auto-fill (only for new cases)
+  useEffect(() => {
+    if (!isNewCase || !mrn || mrn.trim() === '') {
+      return;
+    }
+
+    const trimmedMRN = mrn.trim();
+    
+    // Only check if MRN has changed
+    if (trimmedMRN === lastCheckedMRN.current) {
+      return;
+    }
+
+    lastCheckedMRN.current = trimmedMRN;
+
+    const matchingCase = findMostRecentCaseByMRN(trimmedMRN, existingCases);
+
+    if (matchingCase) {
+      // Show alert
+      toast.info('Duplicate MRN detected', {
+        description: `Auto-filling demographics from existing case for ${matchingCase.patientFirstName} ${matchingCase.patientLastName}`,
+      });
+
+      // Auto-fill demographics
+      setValue('mrn', matchingCase.mrn);
+      setValue('dateOfBirth', matchingCase.dateOfBirth);
+      setValue('patientFirstName', matchingCase.patientFirstName);
+      setValue('patientLastName', matchingCase.patientLastName);
+      setValue('species', matchingCase.species);
+      setValue('breed', matchingCase.breed);
+      setValue('sex', matchingCase.sex);
+    }
+  }, [mrn, isNewCase, existingCases, setValue]);
 
   const handleQuickAddApply = (demographics: ParsedDemographics) => {
     // Apply parsed demographics to form fields

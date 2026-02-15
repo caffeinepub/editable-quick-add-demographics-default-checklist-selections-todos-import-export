@@ -1,48 +1,24 @@
 {
   "kind": "spec_vs_diff_report",
   "version": "1.0",
-  "generatedAt": "2026-02-15T20:43:30.864Z",
-  "summary": "Diff implements editable Quick Add demographics preview (with apply-to-form), new-case-only default checklist selections for two items, checklist-to-todos persistence + UI section, and case-list sorting controls. Import/export UI is present on the case list page, but backend import/export APIs and ID-collision/nextId handling are not evidenced in the provided backend diff excerpt, so REQ-13 appears incomplete based on available evidence.",
-  "missing_requirements": [
-    {
-      "id": "REQ-13",
-      "requirement": "Backend exposes APIs to export all cases and to import cases; import updates persistent canister state; import handles IDs safely (no collisions) and maintains correct behavior for creating new cases after import (e.g., next ID increments properly).",
-      "reason": "Frontend includes import/export actions and hooks references, but the backend diff excerpt (backend/main.mo shown) does not include any export/import methods or logic for merging imported cases and updating nextId safely. Without those APIs/logic evidenced, REQ-13 cannot be confirmed as implemented.",
-      "evidence": [
-        "frontend/src/pages/CaseListPage.tsx",
-        "frontend/src/hooks/useQueries.ts",
-        "backend/main.mo"
-      ]
-    }
-  ],
+  "generatedAt": "2026-02-15T21:05:28.838Z",
+  "summary": "Implemented MRN matching utility and wired NewCasePage to pass fetched cases into CaseForm. CaseForm shows signs of new-case-only duplicate MRN detection (isNewCase guard, watch('mrn'), lastCheckedMRN ref, toast import) and uses a helper that selects the most recent match by arrivalDate then id. CaseForm logic is truncated, so some acceptance-criteria details cannot be fully verified from the provided diff snippet.",
+  "missing_requirements": [],
   "hallucinated_features": [
     {
-      "description": "Camera-based OCR workflow for Quick Add Demographics (capture photo, extract text via Shape Detection API TextDetector, auto-parse).",
-      "reason": "REQ-10 only requires editable preview of parsed demographics and applying edited values to the form; it does not request camera/OCR capture features.",
+      "description": "Success/error toasts on case creation (\"Case created successfully\" / \"Failed to create case\")",
+      "reason": "BuildRequest focuses on duplicate MRN alert/autofill behavior during MRN entry on the New Case form; it does not request adding toasts around successful/failed case creation submission.",
       "evidence": [
-        "frontend/src/components/cases/QuickAddDemographics.tsx",
-        "frontend/src/utils/ocrText.ts"
-      ]
-    },
-    {
-      "description": "Ability to manually add and delete to-do items from the Case Detail page (not only derived from checklist-at-create time).",
-      "reason": "REQ-12 requires saving checked checklist items as to-dos on create and managing/toggling completion for those to-dos; it does not explicitly request arbitrary add/delete of to-dos via UI actions.",
-      "evidence": [
-        "frontend/src/components/cases/ToDoSection.tsx"
+        "frontend/src/pages/NewCasePage.tsx"
       ]
     }
   ],
-  "confidence": 0.66,
+  "confidence": 0.62,
   "changed_files": [
-    "backend/main.mo",
-    "backend/migration.mo",
     "frontend-file-summaries.txt",
     "frontend/src/components/cases/CaseForm.tsx",
-    "frontend/src/components/cases/QuickAddDemographics.tsx",
-    "frontend/src/components/cases/ToDoSection.tsx",
-    "frontend/src/hooks/useQueries.ts",
-    "frontend/src/pages/CaseDetailPage.tsx",
-    "frontend/src/pages/CaseListPage.tsx",
+    "frontend/src/pages/NewCasePage.tsx",
+    "frontend/src/utils/caseMatching.ts",
     "project_state.json"
   ]
 }

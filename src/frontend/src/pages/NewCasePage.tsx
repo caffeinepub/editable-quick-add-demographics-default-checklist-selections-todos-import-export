@@ -1,5 +1,5 @@
 import { useNavigate } from '@tanstack/react-router';
-import { useCreateCase } from '../hooks/useQueries';
+import { useCreateCase, useListCases } from '../hooks/useQueries';
 import CaseForm from '../components/cases/CaseForm';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { ArrowLeft } from 'lucide-react';
@@ -10,6 +10,7 @@ import type { CaseFormData } from '../components/cases/CaseForm';
 export default function NewCasePage() {
   const navigate = useNavigate();
   const createCase = useCreateCase();
+  const { data: existingCases = [] } = useListCases();
 
   const handleSubmit = async (data: CaseFormData) => {
     try {
@@ -50,6 +51,7 @@ export default function NewCasePage() {
             onSubmit={handleSubmit}
             onCancel={() => navigate({ to: '/' })}
             isSubmitting={createCase.isPending}
+            existingCases={existingCases}
           />
         </CardContent>
       </Card>

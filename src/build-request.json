@@ -1,111 +1,37 @@
 {
   "kind": "build_request",
-  "title": "Editable Quick Add demographics, default checklist selections -> todos, import/export, and sortable case list",
+  "title": "Alert and auto-fill demographics when MRN already exists",
   "priority": "normal",
   "requirements": [
     {
-      "id": "REQ-10",
-      "text": "Update the Quick Add Demographics flow so users can edit the parsed demographic field values (e.g., MRN, patient name, DOB, species, breed, sex, arrival date) in the Quick Add preview before applying them to the case form, and then apply the edited values to the form.",
+      "id": "REQ-1",
+      "text": "When creating a new case, detect if the entered MRN matches an existing case in the cases list and (1) alert the user and (2) automatically populate MRN, date of birth, patient first name, patient last name, species, breed, and sex from the most recent existing case with that MRN.",
       "target": "frontend",
       "source": {
         "messageIds": [
-          "recent-messages"
+          "msg-4"
         ],
         "quotes": [
-          "Yes, allow a way to edit the posted demographics before saving"
+          "if adding a case with a MRN that already exists in the cases list alert the user and automatically complete the MRN,  date of birth, patient first name, patient last name, species, breed and sex using the data from the previous entry"
         ]
       },
       "acceptanceCriteria": [
-        "After parsing pasted/scanned text, the Quick Add preview renders editable inputs for each parsed field value (not only read-only text).",
-        "Edits made in the Quick Add preview are applied to the CaseForm fields when the user clicks “Apply to Form”.",
-        "Using Quick Add does not auto-save; the user can still review and edit fields in the CaseForm before submitting."
-      ]
-    },
-    {
-      "id": "REQ-11",
-      "text": "Change the New Case default checklist selection so that “Discharge Notes Complete” and “pDVM Notified” are checked by default when creating a new case (but do not change defaults when editing an existing case).",
-      "target": "frontend",
-      "source": {
-        "messageIds": [
-          "recent-messages"
-        ],
-        "quotes": [
-          "default check list with the discharge notes and pDVM notified checked"
-        ]
-      },
-      "acceptanceCriteria": [
-        "On the New Case page, the checklist checkboxes for “Discharge Notes Complete” and “pDVM Notified” are checked by default.",
-        "On the Case Detail edit page, existing saved values continue to load without being overridden by defaults."
-      ]
-    },
-    {
-      "id": "REQ-12",
-      "text": "Implement checklist-to-todos behavior: when creating a new case, any checklist item that is checked at submission time is saved to the case record as a “to do” item; the case record must then display and manage these “to do” items on the Case Detail page.",
-      "target": "both",
-      "source": {
-        "messageIds": [
-          "recent-messages"
-        ],
-        "quotes": [
-          "for checklist any item that is checked when adding the case becomes a \"to do\" item on the record"
-        ]
-      },
-      "acceptanceCriteria": [
-        "Backend: The case data model persists which checklist items are “to do” items for each case (not inferred solely from the completion booleans).",
-        "Frontend: On New Case, checked checklist items at submit time become “to do” items on the saved record.",
-        "Frontend: On Case Detail, there is a visible “To Do” section that lists the saved to-do items for that case.",
-        "Frontend: Toggling completion for a to-do item updates the saved case state consistently (e.g., marks it complete) without losing which items are part of the to-do list.",
-        "Existing cases created before this change continue to load without errors (migration handled as needed)."
-      ]
-    },
-    {
-      "id": "REQ-13",
-      "text": "Add data export and import capabilities for surgery cases so a user can export all saved cases to a file and import cases from a file back into the app.",
-      "target": "both",
-      "source": {
-        "messageIds": [
-          "recent-messages"
-        ],
-        "quotes": [
-          "provide a way to import and export data"
-        ]
-      },
-      "acceptanceCriteria": [
-        "Frontend provides an “Export” action that downloads all cases into a file in a standard format (JSON is acceptable).",
-        "Frontend provides an “Import” action that lets the user select a file and import cases, showing a clear success/failure message in English.",
-        "Backend exposes APIs to export all cases and to import cases; import updates persistent canister state.",
-        "Import handles IDs safely (no collisions) and maintains correct behavior for creating new cases after import (e.g., next ID increments properly)."
-      ]
-    },
-    {
-      "id": "REQ-14",
-      "text": "Add sorting controls to the Surgery Cases list allowing users to sort cases by date (arrival date) and at least one additional field (e.g., MRN or patient name).",
-      "target": "frontend",
-      "source": {
-        "messageIds": [
-          "recent-messages"
-        ],
-        "quotes": [
-          "allow a way to sort the cases in the list by date, etc"
-        ]
-      },
-      "acceptanceCriteria": [
-        "Case list page includes a sort control with at least: Arrival Date (newest first), Arrival Date (oldest first), and one non-date sort option.",
-        "Changing the sort option reorders the visible list without breaking search/filtering.",
-        "Default sorting is clearly defined and consistent (e.g., Arrival Date newest first)."
+        "On the New Case page, entering an MRN that already exists in the fetched cases list triggers a user-visible alert in English (e.g., a toast).",
+        "After the duplicate MRN is detected, the CaseForm fields are auto-set to the matched case’s values for: MRN, date of birth, patient first name, patient last name, species, breed, and sex.",
+        "When multiple cases share the same MRN, the form uses the most recent prior entry (define and implement as the case with the greatest arrivalDate; if tied/unavailable, fall back to the greatest id).",
+        "The auto-fill/alert behavior only runs for new-case creation (i.e., when CaseForm has no initialData) and does not interfere with editing an existing case.",
+        "The alert does not repeatedly fire on every render for the same MRN value (e.g., it should fire once per MRN entry/change)."
       ]
     }
   ],
   "constraints": [
-    "Backend must remain a single Motoko actor in backend/main.mo.",
-    "Only create backend/migration.mo if required to preserve/upgrade existing stored state (conditional migration policy).",
-    "Do not edit any files under frontend/src/components/ui or any paths listed in frontend.immutablePaths.",
-    "Use English for all user-facing UI text."
+    "Do not edit files under frontend/src/components/ui (compose them only).",
+    "Do not modify frontend immutable paths listed in SYSTEM_CONTEXT (e.g., frontend/src/hooks/useInternetIdentity.ts(x), frontend/src/hooks/useActor.ts, frontend/src/main.tsx).",
+    "Use English for any user-facing text."
   ],
   "nonGoals": [
-    "Adding third-party authentication providers (must remain Internet Identity).",
-    "Adding external databases or off-chain storage for import/export.",
-    "Real-time sync or multi-user collaboration features."
+    "Do not enforce MRN uniqueness at the backend (no trapping or rejecting creates based on MRN).",
+    "Do not change case list sorting, import/export behavior, or existing CRUD flows beyond the MRN duplicate auto-fill behavior in the new case form."
   ],
   "imageRequirements": {
     "required": [],

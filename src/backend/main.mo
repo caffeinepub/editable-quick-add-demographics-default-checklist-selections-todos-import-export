@@ -8,9 +8,9 @@ import Runtime "mo:core/Runtime";
 import Nat "mo:core/Nat";
 import AccessControl "authorization/access-control";
 import MixinAuthorization "authorization/MixinAuthorization";
-import Migration "migration";
 
-(with migration = Migration.run)
+
+
 actor {
   public type Sex = {
     #male;
