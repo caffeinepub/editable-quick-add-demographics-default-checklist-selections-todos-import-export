@@ -1,0 +1,86 @@
+{
+  "schemaVersion": "1.0.0",
+  "projectStateVersion": 3,
+  "summary": "Build a case-record tracking app with editable demographics, checklist-driven todos, data import/export, and sortable case lists.",
+  "architectural_notes": [],
+  "known_issues": [],
+  "isFixRequest": false,
+  "existing_features": [
+    {
+      "id": "feature-update-the-quick-add-demographics-flow-so-users-can-edit-the-parsed-demographic-field-values-e-g-mrn-patient-name-dob-species-breed-sex-arrival-date-in-the-quick-add-preview-before-applying-them-to-the-case-form-and-then-apply-the-edited-values-to-the-form",
+      "title": "Update the Quick Add Demographics flow so users can edit the parsed demographic field values (e.g., MRN, patient name, DOB, species, breed, sex, arrival date) in the Quick Add preview before applying them to the case form, and then apply the edited values to the form.",
+      "reqIds": [
+        "REQ-10"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-change-the-new-case-default-checklist-selection-so-that-discharge-notes-complete-and-pdvm-notified-are-checked-by-default-when-creating-a-new-case-but-do-not-change-defaults-when-editing-an-existing-case",
+      "title": "Change the New Case default checklist selection so that “Discharge Notes Complete” and “pDVM Notified” are checked by default when creating a new case (but do not change defaults when editing an existing case).",
+      "reqIds": [
+        "REQ-11"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-implement-checklist-to-todos-behavior-when-creating-a-new-case-any-checklist-item-that-is-checked-at-submission-time-is-saved-to-the-case-record-as-a-to-do-item-the-case-record-must-then-display-and-manage-these-to-do-items-on-the-case-detail-page",
+      "title": "Implement checklist-to-todos behavior: when creating a new case, any checklist item that is checked at submission time is saved to the case record as a “to do” item; the case record must then display and manage these “to do” items on the Case Detail page.",
+      "reqIds": [
+        "REQ-12"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-add-data-export-and-import-capabilities-for-surgery-cases-so-a-user-can-export-all-saved-cases-to-a-file-and-import-cases-from-a-file-back-into-the-app",
+      "title": "Add data export and import capabilities for surgery cases so a user can export all saved cases to a file and import cases from a file back into the app.",
+      "reqIds": [
+        "REQ-13"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-add-sorting-controls-to-the-surgery-cases-list-allowing-users-to-sort-cases-by-date-arrival-date-and-at-least-one-additional-field-e-g-mrn-or-patient-name",
+      "title": "Add sorting controls to the Surgery Cases list allowing users to sort cases by date (arrival date) and at least one additional field (e.g., MRN or patient name).",
+      "reqIds": [
+        "REQ-14"
+      ],
+      "version": 1
+    }
+  ],
+  "new_feature_requests": [
+    {
+      "id": "AR-1",
+      "summary": "Allow editing pasted/posted demographics before saving a case.",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-2",
+      "summary": "Provide a default checklist for new cases with 'Discharge notes' and 'pDVM notified' checked by default.",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-3",
+      "summary": "When adding a case, any checklist item checked becomes a 'to do' item on the saved case record.",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-4",
+      "summary": "Provide a way to import and export data.",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-5",
+      "summary": "Allow sorting the cases list (e.g., by date and other fields).",
+      "reqIds": [],
+      "status": "pending"
+    }
+  ],
+  "gameProjectType": "none",
+  "projectName": "Editable Quick Add demographics, default checklist selections -> todos, import/export, and sortable case list",
+  "clarification_mode": "instant",
+  "clarification_rounds": 0
+}

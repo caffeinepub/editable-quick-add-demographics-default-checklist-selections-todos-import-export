@@ -1,0 +1,108 @@
+{
+  "kind": "feature_evidence_report",
+  "features": [
+    {
+      "featureId": "feature-update-the-quick-add-demographics-flow-so-users-can-edit-the-parsed-demographic-field-values-e-g-mrn-patient-name-dob-species-breed-sex-arrival-date-in-the-quick-add-preview-before-applying-them-to-the-case-form-and-then-apply-the-edited-values-to-the-form",
+      "featureTitle": "Update the Quick Add Demographics flow so users can edit the parsed demographic field values (e.g., MRN, patient name, DOB, species, breed, sex, arrival date) in the Quick Add preview before applying them to the case form, and then apply the edited values to the form.",
+      "files": [
+        "frontend/src/components/cases/QuickAddDemographics.tsx"
+      ],
+      "components": [
+        "authorization@4.0.0",
+        "core-infrastructure@1.0.2",
+        "shadcn-ui@1.0.0",
+        "build-template-react@1.0.0",
+        "initial-app@1.0.0",
+        "github-export-icp-cli@1.0.0",
+        "camera@1.0.0"
+      ],
+      "testIds": [
+        "REQ-10"
+      ],
+      "confidence": "high"
+    },
+    {
+      "featureId": "feature-change-the-new-case-default-checklist-selection-so-that-discharge-notes-complete-and-pdvm-notified-are-checked-by-default-when-creating-a-new-case-but-do-not-change-defaults-when-editing-an-existing-case",
+      "featureTitle": "Change the New Case default checklist selection so that “Discharge Notes Complete” and “pDVM Notified” are checked by default when creating a new case (but do not change defaults when editing an existing case).",
+      "files": [
+        "frontend/src/components/cases/CaseForm.tsx"
+      ],
+      "components": [
+        "authorization@4.0.0",
+        "core-infrastructure@1.0.2",
+        "shadcn-ui@1.0.0",
+        "build-template-react@1.0.0",
+        "initial-app@1.0.0",
+        "github-export-icp-cli@1.0.0",
+        "camera@1.0.0"
+      ],
+      "testIds": [
+        "REQ-11"
+      ],
+      "confidence": "high"
+    },
+    {
+      "featureId": "feature-implement-checklist-to-todos-behavior-when-creating-a-new-case-any-checklist-item-that-is-checked-at-submission-time-is-saved-to-the-case-record-as-a-to-do-item-the-case-record-must-then-display-and-manage-these-to-do-items-on-the-case-detail-page",
+      "featureTitle": "Implement checklist-to-todos behavior: when creating a new case, any checklist item that is checked at submission time is saved to the case record as a “to do” item; the case record must then display and manage these “to do” items on the Case Detail page.",
+      "files": [
+        "frontend/src/components/cases/ToDoSection.tsx",
+        "frontend/src/hooks/useQueries.ts",
+        "frontend/src/pages/CaseDetailPage.tsx"
+      ],
+      "components": [
+        "authorization@4.0.0",
+        "core-infrastructure@1.0.2",
+        "shadcn-ui@1.0.0",
+        "build-template-react@1.0.0",
+        "initial-app@1.0.0",
+        "github-export-icp-cli@1.0.0",
+        "camera@1.0.0"
+      ],
+      "testIds": [
+        "REQ-12"
+      ],
+      "confidence": "high"
+    },
+    {
+      "featureId": "feature-add-data-export-and-import-capabilities-for-surgery-cases-so-a-user-can-export-all-saved-cases-to-a-file-and-import-cases-from-a-file-back-into-the-app",
+      "featureTitle": "Add data export and import capabilities for surgery cases so a user can export all saved cases to a file and import cases from a file back into the app.",
+      "files": [
+        "frontend/src/hooks/useQueries.ts",
+        "frontend/src/pages/CaseListPage.tsx"
+      ],
+      "components": [
+        "authorization@4.0.0",
+        "core-infrastructure@1.0.2",
+        "shadcn-ui@1.0.0",
+        "build-template-react@1.0.0",
+        "initial-app@1.0.0",
+        "github-export-icp-cli@1.0.0",
+        "camera@1.0.0"
+      ],
+      "testIds": [
+        "REQ-13"
+      ],
+      "confidence": "high"
+    },
+    {
+      "featureId": "feature-add-sorting-controls-to-the-surgery-cases-list-allowing-users-to-sort-cases-by-date-arrival-date-and-at-least-one-additional-field-e-g-mrn-or-patient-name",
+      "featureTitle": "Add sorting controls to the Surgery Cases list allowing users to sort cases by date (arrival date) and at least one additional field (e.g., MRN or patient name).",
+      "files": [
+        "frontend/src/pages/CaseListPage.tsx"
+      ],
+      "components": [
+        "authorization@4.0.0",
+        "core-infrastructure@1.0.2",
+        "shadcn-ui@1.0.0",
+        "build-template-react@1.0.0",
+        "initial-app@1.0.0",
+        "github-export-icp-cli@1.0.0",
+        "camera@1.0.0"
+      ],
+      "testIds": [
+        "REQ-14"
+      ],
+      "confidence": "high"
+    }
+  ]
+}
