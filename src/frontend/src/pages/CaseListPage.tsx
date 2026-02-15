@@ -124,6 +124,7 @@ export default function CaseListPage() {
           ...c,
           id: BigInt(c.id),
           arrivalDate: BigInt(c.arrivalDate),
+          notes: c.notes || '', // Default to empty string if missing
           todos: c.todos?.map((t: any) => ({
             ...t,
             id: BigInt(t.id),

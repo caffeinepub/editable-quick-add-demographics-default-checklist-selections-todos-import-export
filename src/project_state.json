@@ -1,18 +1,24 @@
 {
   "schemaVersion": "1.0.0",
   "projectStateVersion": 3,
-  "summary": "Project to manage cases with MRN-based lookup: when adding a case, if MRN already exists, alert user and autofill patient demographics from existing case data.",
-  "architectural_notes": [
-    "Support MRN-based case lookup during case creation and use matching record data to prefill patient demographics fields."
-  ],
+  "summary": "Project includes a case-entry workflow; next planned enhancement is adding a notes field for cases.",
+  "architectural_notes": [],
   "known_issues": [],
   "isFixRequest": false,
   "existing_features": [
     {
-      "id": "feature-when-creating-a-new-case-detect-if-the-entered-mrn-matches-an-existing-case-in-the-cases-list-and-1-alert-the-user-and-2-automatically-populate-mrn-date-of-birth-patient-first-name-patient-last-name-species-breed-and-sex-from-the-most-recent-existing-case-with-that-mrn",
-      "title": "When creating a new case, detect if the entered MRN matches an existing case in the cases list and (1) alert the user and (2) automatically populate MRN, date of birth, patient first name, patient last name, species, breed, and sex from the most recent existing case with that MRN.",
+      "id": "feature-add-a-multi-line-case-notes-textarea-field-to-the-case-entry-workflow-ui-create-and-edit-and-wire-it-to-the-backend-so-users-can-write-save-and-later-edit-notes-for-a-case",
+      "title": "Add a multi-line \"Case Notes\" textarea field to the case-entry workflow UI (create and edit) and wire it to the backend so users can write, save, and later edit notes for a case.",
       "reqIds": [
-        "REQ-1"
+        "REQ-4"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-update-frontend-data-flow-types-to-include-the-notes-field-end-to-end-react-query-mutations-queries-form-data-shape-and-any-import-export-parsing-that-relies-on-the-surgerycase-schema",
+      "title": "Update frontend data flow/types to include the notes field end-to-end (React Query mutations/queries, form data shape, and any import/export parsing that relies on the SurgeryCase schema).",
+      "reqIds": [
+        "REQ-5"
       ],
       "version": 1
     }
@@ -20,12 +26,36 @@
   "new_feature_requests": [
     {
       "id": "AR-1",
-      "summary": "On case creation, if MRN already exists, alert the user and auto-populate MRN, DOB, patient first/last name, species, breed, and sex from the previous entry.",
+      "summary": "Add a notes field to the case-entry workflow so users can write notes about the case",
       "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-2",
+      "summary": "Extend the backend SurgeryCase model to include a free-text notes field (e.g., `notes : Text`) that stores user-entered case notes.",
+      "reqIds": [
+        "REQ-1"
+      ],
+      "status": "pending"
+    },
+    {
+      "id": "AR-3",
+      "summary": "Update backend case creation and update APIs to accept and persist the case notes field.",
+      "reqIds": [
+        "REQ-2"
+      ],
+      "status": "pending"
+    },
+    {
+      "id": "AR-4",
+      "summary": "Add an upgrade-safe state migration for the new notes field so existing stored cases continue to load after the schema change, defaulting notes to an empty string when missing.",
+      "reqIds": [
+        "REQ-3"
+      ],
       "status": "pending"
     }
   ],
-  "projectName": "Alert and auto-fill demographics when MRN already exists",
+  "projectName": "Add a notes field to surgery cases",
   "clarification_mode": "instant",
   "clarification_rounds": 0
 }

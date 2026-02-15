@@ -8,9 +8,9 @@ import Runtime "mo:core/Runtime";
 import Nat "mo:core/Nat";
 import AccessControl "authorization/access-control";
 import MixinAuthorization "authorization/MixinAuthorization";
+import Migration "migration";
 
-
-
+(with migration = Migration.run)
 actor {
   public type Sex = {
     #male;
@@ -48,6 +48,7 @@ actor {
     surgeryReportComplete : Bool;
     imagingComplete : Bool;
     cultureComplete : Bool;
+    notes : Text;
     todos : [ToDoItem];
   };
 
@@ -55,7 +56,6 @@ actor {
   var nextToDoId = 0;
   let cases = Map.empty<Nat, SurgeryCase>();
 
-  // Authorization
   let accessControlState = AccessControl.initState();
   include MixinAuthorization(accessControlState);
 
@@ -82,6 +82,7 @@ actor {
     surgeryReportComplete : Bool,
     imagingComplete : Bool,
     cultureComplete : Bool,
+    notes : Text,
     todoDescriptions : [Text],
   ) : async Nat {
     if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
@@ -122,6 +123,7 @@ actor {
       surgeryReportComplete;
       imagingComplete;
       cultureComplete;
+      notes;
       todos;
     };
 
@@ -161,6 +163,7 @@ actor {
     surgeryReportComplete : Bool,
     imagingComplete : Bool,
     cultureComplete : Bool,
+    notes : Text,
     todos : [ToDoItem],
   ) : async () {
     if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
@@ -185,6 +188,7 @@ actor {
       surgeryReportComplete;
       imagingComplete;
       cultureComplete;
+      notes;
       todos;
     };
     cases.add(id, updatedRecord);

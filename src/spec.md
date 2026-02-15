@@ -1,11 +1,13 @@
 # Specification
 
 ## Summary
-**Goal:** Alert users when a new case MRN already exists and auto-fill patient demographics from the most recent matching prior case.
+**Goal:** Add a plain-text notes field to surgery cases so users can write, save, and edit case notes.
 
 **Planned changes:**
-- On the New Case page, detect when the entered MRN matches an MRN in the fetched cases list and show an English user-visible alert (e.g., toast).
-- Auto-populate the new case form fields (MRN, date of birth, patient first name, patient last name, species, breed, sex) using the most recent existing case with that MRN (by greatest arrivalDate; fallback to greatest id).
-- Ensure the behavior runs only for new-case creation (no initialData) and the alert fires once per MRN entry/change rather than repeatedly on re-render.
+- Extend the backend `SurgeryCase` model with a free-text `notes` field and include it in all APIs that return cases (e.g., getCase/listCases/exportCases).
+- Update backend `createCase`/`updateCase` APIs to accept and persist the `notes` field.
+- Add an upgrade-safe backend migration so existing stored cases load after the schema change, defaulting missing `notes` to an empty string.
+- Update the frontend case create/edit workflow to include a multi-line “Case Notes” textarea, prefilled on edit, and saved to the backend.
+- Update frontend types and data flow end-to-end (queries/mutations and import/export) to include `notes`, with CSV/JSON handling defaulting to empty string when missing.
 
-**User-visible outcome:** When creating a new case and entering an MRN that already exists, the user is notified and the form automatically fills in the matching patient demographics from the latest prior case.
+**User-visible outcome:** Users can enter multi-line case notes when creating or editing a surgery case, and those notes are saved, shown when reopening the case, and included in imports/exports.

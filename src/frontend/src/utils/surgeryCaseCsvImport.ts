@@ -25,6 +25,9 @@ import { Species as SpeciesEnum, Sex as SexEnum } from '../backend';
  * - imagingComplete
  * - cultureComplete
  * 
+ * Optional text columns:
+ * - notes: Case notes (plain text)
+ * 
  * Optional todos column:
  * - todos: Semicolon-separated list of to-do items in format "id:description:complete"
  *   Example: "1:Review labs:true;2:Call owner:false"
@@ -345,6 +348,9 @@ export function parseCsvToSurgeryCases(csvText: string): SurgeryCase[] {
       const imagingComplete = parseBoolean(getColumn(row, 'imagingComplete') || 'false');
       const cultureComplete = parseBoolean(getColumn(row, 'cultureComplete') || 'false');
       
+      // Parse optional notes field
+      const notes = getColumn(row, 'notes') || '';
+      
       // Parse todos
       let todos: ToDoItem[] = [];
       const todosStr = getColumn(row, 'todos');
@@ -376,6 +382,7 @@ export function parseCsvToSurgeryCases(csvText: string): SurgeryCase[] {
         surgeryReportComplete,
         imagingComplete,
         cultureComplete,
+        notes,
         todos,
       });
       

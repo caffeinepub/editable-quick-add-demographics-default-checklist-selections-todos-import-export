@@ -1,14 +1,14 @@
 {
   "frontend/src/App.tsx": "Main application component with TanStack Router setup, authentication flow, and theme provider integration with inline login button for unauthenticated users.",
-  "frontend/src/pages/CaseListPage.tsx": "Case list view with search/filter by MRN and patient name, sortable by arrival date (newest/oldest) and MRN, plus import/export actions supporting both JSON and CSV file formats with comprehensive validation and user feedback toasts.",
+  "frontend/src/pages/CaseListPage.tsx": "Case list view with search/filter by MRN and patient name, sortable by arrival date and MRN, plus import/export actions supporting both JSON and CSV file formats with comprehensive validation, user feedback toasts, and notes field handling (defaults to empty string when missing in imports).",
   "frontend/src/pages/NewCasePage.tsx": "New case creation page that fetches existing cases and passes them to CaseForm for duplicate MRN detection and auto-fill functionality.",
   "frontend/src/pages/CaseDetailPage.tsx": "Case detail and edit page showing full case information with to-do section, update and delete capabilities, preserving existing todos when updating case fields.",
-  "frontend/src/components/cases/CaseForm.tsx": "Reusable form component for creating and editing surgery cases with duplicate MRN detection (new cases only) that shows a toast alert and auto-fills demographics from the most recent matching case, plus Quick Add demographics import and checklist items.",
+  "frontend/src/components/cases/CaseForm.tsx": "Reusable form component for creating and editing surgery cases with duplicate MRN detection, Quick Add demographics import, checklist items, and a new multi-line \"Case Notes\" textarea field that persists with the case data.",
   "frontend/src/components/layout/AppLayout.tsx": "Main layout wrapper providing consistent structure with header, main content area, and footer across all pages.",
   "frontend/src/components/layout/TopNav.tsx": "Top navigation bar with app branding, principal ID display (instead of user profile), and login/logout controls.",
   "frontend/src/components/auth/LoginButton.tsx": "Authentication button component handling login/logout with Internet Identity and query cache clearing.",
   "frontend/src/components/auth/ProfileSetupModal.tsx": "Modal dialog for first-time user profile setup requiring name entry after initial login.",
-  "frontend/src/hooks/useQueries.ts": "React Query hooks for backend CRUD operations on surgery cases, to-do item management (add/toggle/delete), and import/export functionality with proper cache invalidation.",
+  "frontend/src/hooks/useQueries.ts": "React Query hooks for backend CRUD operations on surgery cases, to-do item management, and import/export functionality with proper cache invalidation, now passing the notes field in create and update mutations.",
   "frontend/src/utils/dateTime.ts": "Utility functions for converting between HTML date strings, JavaScript Date objects, and backend Time bigint values.",
   "frontend/src/index.css": "Global styles with OKLCH color system using teal/green clinical theme for both light and dark modes.",
   "frontend/src/backend.d.ts": "TypeScript interface definitions for backend types including UserProfile, SurgeryCase, and all backend methods.",
@@ -16,6 +16,6 @@
   "frontend/src/utils/ocrText.ts": "Client-side text extraction utility using the experimental Shape Detection API TextDetector when available, with clear fallback messaging when unsupported.",
   "frontend/src/components/cases/QuickAddDemographics.tsx": "Quick Add component with editable preview fields (Input/Select) for parsed demographics, supporting both paste and camera-based OCR workflows with explicit apply action to update form fields.",
   "frontend/src/components/cases/ToDoSection.tsx": "Case Detail to-do list UI component that displays saved to-do items with toggle completion, add new item, and delete functionality using React Query mutations.",
-  "frontend/src/utils/surgeryCaseCsvImport.ts": "Client-side CSV parser that converts CSV text into SurgeryCase objects with comprehensive validation, supporting case-insensitive headers, multiple date formats, enum normalization for species/sex using proper TypeScript enum values, boolean parsing, and semicolon-separated to-do items with detailed error reporting including row and column information.",
+  "frontend/src/utils/surgeryCaseCsvImport.ts": "Client-side CSV parser that converts CSV text into SurgeryCase objects with comprehensive validation, supporting case-insensitive headers, multiple date formats, enum normalization, boolean parsing, optional notes column (plain text), and semicolon-separated to-do items with detailed error reporting.",
   "frontend/src/utils/caseMatching.ts": "Utility function that finds the most recent case for a given MRN by comparing arrivalDate (descending) then id (descending), with safe handling of empty/whitespace MRNs."
 }

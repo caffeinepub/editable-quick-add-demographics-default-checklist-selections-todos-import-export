@@ -31,6 +31,7 @@ export interface SurgeryCase {
   'patientFirstName' : string,
   'imagingComplete' : boolean,
   'surgeryReportComplete' : boolean,
+  'notes' : string,
   'dischargeNotesComplete' : boolean,
   'breed' : string,
   'species' : Species,
@@ -67,6 +68,7 @@ export interface _SERVICE {
       boolean,
       boolean,
       boolean,
+      string,
       Array<string>,
     ],
     bigint
@@ -107,6 +109,7 @@ export interface _SERVICE {
       boolean,
       boolean,
       boolean,
+      string,
       Array<ToDoItem>,
     ],
     undefined

@@ -2,12 +2,10 @@
   "kind": "feature_evidence_report",
   "features": [
     {
-      "featureId": "feature-when-creating-a-new-case-detect-if-the-entered-mrn-matches-an-existing-case-in-the-cases-list-and-1-alert-the-user-and-2-automatically-populate-mrn-date-of-birth-patient-first-name-patient-last-name-species-breed-and-sex-from-the-most-recent-existing-case-with-that-mrn",
-      "featureTitle": "When creating a new case, detect if the entered MRN matches an existing case in the cases list and (1) alert the user and (2) automatically populate MRN, date of birth, patient first name, patient last name, species, breed, and sex from the most recent existing case with that MRN.",
+      "featureId": "feature-add-a-multi-line-case-notes-textarea-field-to-the-case-entry-workflow-ui-create-and-edit-and-wire-it-to-the-backend-so-users-can-write-save-and-later-edit-notes-for-a-case",
+      "featureTitle": "Add a multi-line \"Case Notes\" textarea field to the case-entry workflow UI (create and edit) and wire it to the backend so users can write, save, and later edit notes for a case.",
       "files": [
-        "frontend/src/components/cases/CaseForm.tsx",
-        "frontend/src/pages/NewCasePage.tsx",
-        "frontend/src/utils/caseMatching.ts"
+        "frontend/src/components/cases/CaseForm.tsx"
       ],
       "components": [
         "authorization@4.0.0",
@@ -19,7 +17,30 @@
         "camera@1.0.0"
       ],
       "testIds": [
-        "REQ-1"
+        "REQ-4"
+      ],
+      "confidence": "high"
+    },
+    {
+      "featureId": "feature-update-frontend-data-flow-types-to-include-the-notes-field-end-to-end-react-query-mutations-queries-form-data-shape-and-any-import-export-parsing-that-relies-on-the-surgerycase-schema",
+      "featureTitle": "Update frontend data flow/types to include the notes field end-to-end (React Query mutations/queries, form data shape, and any import/export parsing that relies on the SurgeryCase schema).",
+      "files": [
+        "frontend/src/components/cases/CaseForm.tsx",
+        "frontend/src/hooks/useQueries.ts",
+        "frontend/src/pages/CaseListPage.tsx",
+        "frontend/src/utils/surgeryCaseCsvImport.ts"
+      ],
+      "components": [
+        "authorization@4.0.0",
+        "core-infrastructure@1.0.2",
+        "shadcn-ui@1.0.0",
+        "build-template-react@1.0.0",
+        "initial-app@1.0.0",
+        "github-export-icp-cli@1.0.0",
+        "camera@1.0.0"
+      ],
+      "testIds": [
+        "REQ-5"
       ],
       "confidence": "high"
     }

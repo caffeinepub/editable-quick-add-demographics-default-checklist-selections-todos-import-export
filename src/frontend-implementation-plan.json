@@ -1,33 +1,53 @@
 {
   "kind": "implementation_plan",
   "version": "1.0",
-  "title": "Duplicate MRN alert and demographics auto-fill on New Case",
+  "title": "Add case notes field to surgery cases (frontend)",
   "requirements": [
     {
-      "id": "REQ-1",
-      "summary": "On New Case creation, detect duplicate MRN from the fetched cases list, toast an alert once per MRN change, and auto-fill demographics from the most recent matching prior case.",
+      "id": "REQ-4",
+      "summary": "Add a multi-line \"Case Notes\" textarea to the create/edit case form and bind it to form state so it can be saved and later edited.",
       "acceptanceCriteria": [
-        "On the New Case page, entering an MRN that already exists in the fetched cases list triggers a user-visible alert in English (e.g., a toast).",
-        "After the duplicate MRN is detected, the CaseForm fields are auto-set to the matched case’s values for: MRN, date of birth, patient first name, patient last name, species, breed, and sex.",
-        "When multiple cases share the same MRN, the form uses the most recent prior entry (define and implement as the case with the greatest arrivalDate; if tied/unavailable, fall back to the greatest id).",
-        "The auto-fill/alert behavior only runs for new-case creation (i.e., when CaseForm has no initialData) and does not interfere with editing an existing case.",
-        "The alert does not repeatedly fire on every render for the same MRN value (e.g., it should fire once per MRN entry/change)."
+        "The New Case form includes a textarea labeled \"Case Notes\".",
+        "The Case Details (edit) form includes the same textarea pre-filled with existing notes.",
+        "Submitting the form saves notes; re-opening the case shows the saved notes."
       ],
       "file_operations": [
         {
-          "path": "frontend/src/pages/NewCasePage.tsx",
+          "path": "frontend/src/components/cases/CaseForm.tsx",
           "operation": "modify",
-          "description": "Fetch the existing cases list (via the existing query hook) and pass it into CaseForm as an optional prop used only during new-case creation; keep user-facing text in English. Use the existing shadcn-ui toast/sonner setup already present in the app for any page-level messaging if needed. Verify the component's usage instructions before implementing."
-        },
+          "description": "Add a new \"Case Notes\" multi-line textarea field to the form UI; include `notes` in the form defaultValues (using `initialData?.notes` for edits) and ensure the submitted `CaseFormData` includes the notes string."
+        }
+      ]
+    },
+    {
+      "id": "REQ-5",
+      "summary": "Update frontend types and data flow to carry the notes field through queries/mutations and import/export (JSON + CSV).",
+      "acceptanceCriteria": [
+        "Frontend `CaseFormData` includes a notes string field.",
+        "`useCreateCase` and `useUpdateCase` send notes to the backend.",
+        "JSON import/export continues to work with notes present in exported cases and accepted on import.",
+        "CSV import continues to work; if a notes column is provided, it is imported; if omitted, notes defaults to an empty string."
+      ],
+      "file_operations": [
         {
           "path": "frontend/src/components/cases/CaseForm.tsx",
           "operation": "modify",
-          "description": "Add optional input for the fetched cases list and implement duplicate-MRN detection for new-case mode only (when initialData is absent). On MRN change, find the most recent matching case (greatest arrivalDate, then greatest id), show a one-time-per-MRN toast alert in English using the existing toast/sonner integration, and auto-set fields (mrn, dateOfBirth, patientFirstName, patientLastName, species, breed, sex) via react-hook-form setValue without affecting edit flows. Verify the component's usage instructions before implementing."
+          "description": "Extend `CaseFormData` to include `notes: string`, and ensure the internal react-hook-form schema tracks `notes` so create/update flows can pass it end-to-end."
         },
         {
-          "path": "frontend/src/utils/caseMatching.ts",
-          "operation": "create",
-          "description": "Introduce a small utility to select the most recent case for a given MRN (compare by arrivalDate desc, then id desc; handle empty/whitespace MRNs safely) to keep CaseForm logic clear and consistent with the acceptance criteria."
+          "path": "frontend/src/hooks/useQueries.ts",
+          "operation": "modify",
+          "description": "Update `useCreateCase` and `useUpdateCase` mutations to pass `data.notes` into the backend calls in the correct argument position so notes persist on create and update."
+        },
+        {
+          "path": "frontend/src/pages/CaseListPage.tsx",
+          "operation": "modify",
+          "description": "Adjust JSON import mapping to ensure imported cases always include `notes` (default to empty string when missing) so importing older exports remains compatible."
+        },
+        {
+          "path": "frontend/src/utils/surgeryCaseCsvImport.ts",
+          "operation": "modify",
+          "description": "Add optional CSV support for a `notes` column (case-insensitive like other columns): parse it as plain text, default to an empty string when absent, and include it on the constructed `SurgeryCase` objects returned from `parseCsvToSurgeryCases`."
         }
       ]
     }

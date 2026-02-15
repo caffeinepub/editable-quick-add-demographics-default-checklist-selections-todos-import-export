@@ -68,6 +68,7 @@ export function useCreateCase() {
         data.surgeryReportComplete,
         data.imagingComplete,
         data.cultureComplete,
+        data.notes,
         todoDescriptions
       );
     },
@@ -112,6 +113,7 @@ export function useUpdateCase() {
         data.surgeryReportComplete,
         data.imagingComplete,
         data.cultureComplete,
+        data.notes,
         todosToSave
       );
     },
@@ -130,6 +132,146 @@ export function useDeleteCase() {
     mutationFn: async (id: bigint) => {
       if (!actor) throw new Error('Actor not available');
       return actor.deleteCase(id);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['cases'] });
+    },
+  });
+}
+
+// Checklist Toggle Mutations
+export function useToggleDischargeNotes() {
+  const { actor } = useActor();
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (id: bigint) => {
+      if (!actor) throw new Error('Actor not available');
+      return actor.toggleDischargeNotes(id);
+    },
+    onSuccess: (_, id) => {
+      queryClient.invalidateQueries({ queryKey: ['case', id.toString()] });
+      queryClient.invalidateQueries({ queryKey: ['cases'] });
+    },
+  });
+}
+
+export function useTogglePdvmNotified() {
+  const { actor } = useActor();
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (id: bigint) => {
+      if (!actor) throw new Error('Actor not available');
+      return actor.togglePdvmNotified(id);
+    },
+    onSuccess: (_, id) => {
+      queryClient.invalidateQueries({ queryKey: ['case', id.toString()] });
+      queryClient.invalidateQueries({ queryKey: ['cases'] });
+    },
+  });
+}
+
+export function useToggleLabs() {
+  const { actor } = useActor();
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (id: bigint) => {
+      if (!actor) throw new Error('Actor not available');
+      return actor.toggleLabs(id);
+    },
+    onSuccess: (_, id) => {
+      queryClient.invalidateQueries({ queryKey: ['case', id.toString()] });
+      queryClient.invalidateQueries({ queryKey: ['cases'] });
+    },
+  });
+}
+
+export function useToggleHisto() {
+  const { actor } = useActor();
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (id: bigint) => {
+      if (!actor) throw new Error('Actor not available');
+      return actor.toggleHisto(id);
+    },
+    onSuccess: (_, id) => {
+      queryClient.invalidateQueries({ queryKey: ['case', id.toString()] });
+      queryClient.invalidateQueries({ queryKey: ['cases'] });
+    },
+  });
+}
+
+export function useToggleSurgeryReport() {
+  const { actor } = useActor();
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (id: bigint) => {
+      if (!actor) throw new Error('Actor not available');
+      return actor.toggleSurgeryReport(id);
+    },
+    onSuccess: (_, id) => {
+      queryClient.invalidateQueries({ queryKey: ['case', id.toString()] });
+      queryClient.invalidateQueries({ queryKey: ['cases'] });
+    },
+  });
+}
+
+export function useToggleImaging() {
+  const { actor } = useActor();
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (id: bigint) => {
+      if (!actor) throw new Error('Actor not available');
+      return actor.toggleImaging(id);
+    },
+    onSuccess: (_, id) => {
+      queryClient.invalidateQueries({ queryKey: ['case', id.toString()] });
+      queryClient.invalidateQueries({ queryKey: ['cases'] });
+    },
+  });
+}
+
+export function useToggleCulture() {
+  const { actor } = useActor();
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (id: bigint) => {
+      if (!actor) throw new Error('Actor not available');
+      return actor.toggleCulture(id);
+    },
+    onSuccess: (_, id) => {
+      queryClient.invalidateQueries({ queryKey: ['case', id.toString()] });
+      queryClient.invalidateQueries({ queryKey: ['cases'] });
+    },
+  });
+}
+
+// Export/Import
+export function useExportCases() {
+  const { actor } = useActor();
+
+  return useMutation({
+    mutationFn: async () => {
+      if (!actor) throw new Error('Actor not available');
+      return actor.exportCases();
+    },
+  });
+}
+
+export function useImportCases() {
+  const { actor } = useActor();
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (cases: SurgeryCase[]) => {
+      if (!actor) throw new Error('Actor not available');
+      return actor.importCases(cases);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['cases'] });
@@ -181,33 +323,6 @@ export function useDeleteTodoItem() {
     },
     onSuccess: (_, { caseId }) => {
       queryClient.invalidateQueries({ queryKey: ['case', caseId.toString()] });
-      queryClient.invalidateQueries({ queryKey: ['cases'] });
-    },
-  });
-}
-
-// Import/Export
-export function useExportCases() {
-  const { actor } = useActor();
-
-  return useMutation({
-    mutationFn: async () => {
-      if (!actor) throw new Error('Actor not available');
-      return actor.exportCases();
-    },
-  });
-}
-
-export function useImportCases() {
-  const { actor } = useActor();
-  const queryClient = useQueryClient();
-
-  return useMutation({
-    mutationFn: async (cases: SurgeryCase[]) => {
-      if (!actor) throw new Error('Actor not available');
-      return actor.importCases(cases);
-    },
-    onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['cases'] });
     },
   });

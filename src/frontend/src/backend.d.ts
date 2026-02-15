@@ -22,6 +22,7 @@ export interface SurgeryCase {
     patientFirstName: string;
     imagingComplete: boolean;
     surgeryReportComplete: boolean;
+    notes: string;
     dischargeNotesComplete: boolean;
     breed: string;
     species: Species;
@@ -51,7 +52,7 @@ export enum UserRole {
 export interface backendInterface {
     addTodoItem(caseId: bigint, description: string): Promise<bigint>;
     assignCallerUserRole(user: Principal, role: UserRole): Promise<void>;
-    createCase(mrn: string, patientFirstName: string, patientLastName: string, dateOfBirth: string, species: Species, breed: string, sex: Sex, presentingComplaint: string, arrivalDate: Time | null, dischargeNotesComplete: boolean, pdvmNotified: boolean, labsComplete: boolean, histoComplete: boolean, surgeryReportComplete: boolean, imagingComplete: boolean, cultureComplete: boolean, todoDescriptions: Array<string>): Promise<bigint>;
+    createCase(mrn: string, patientFirstName: string, patientLastName: string, dateOfBirth: string, species: Species, breed: string, sex: Sex, presentingComplaint: string, arrivalDate: Time | null, dischargeNotesComplete: boolean, pdvmNotified: boolean, labsComplete: boolean, histoComplete: boolean, surgeryReportComplete: boolean, imagingComplete: boolean, cultureComplete: boolean, notes: string, todoDescriptions: Array<string>): Promise<bigint>;
     deleteCase(id: bigint): Promise<void>;
     deleteTodoItem(caseId: bigint, todoId: bigint): Promise<void>;
     exportCases(): Promise<Array<SurgeryCase>>;
@@ -69,5 +70,5 @@ export interface backendInterface {
     togglePdvmNotified(id: bigint): Promise<boolean>;
     toggleSurgeryReport(id: bigint): Promise<boolean>;
     toggleTodoComplete(caseId: bigint, todoId: bigint): Promise<void>;
-    updateCase(id: bigint, mrn: string, patientFirstName: string, patientLastName: string, dateOfBirth: string, arrivalDate: Time, species: Species, breed: string, sex: Sex, presentingComplaint: string, dischargeNotesComplete: boolean, pdvmNotified: boolean, labsComplete: boolean, histoComplete: boolean, surgeryReportComplete: boolean, imagingComplete: boolean, cultureComplete: boolean, todos: Array<ToDoItem>): Promise<void>;
+    updateCase(id: bigint, mrn: string, patientFirstName: string, patientLastName: string, dateOfBirth: string, arrivalDate: Time, species: Species, breed: string, sex: Sex, presentingComplaint: string, dischargeNotesComplete: boolean, pdvmNotified: boolean, labsComplete: boolean, histoComplete: boolean, surgeryReportComplete: boolean, imagingComplete: boolean, cultureComplete: boolean, notes: string, todos: Array<ToDoItem>): Promise<void>;
 }

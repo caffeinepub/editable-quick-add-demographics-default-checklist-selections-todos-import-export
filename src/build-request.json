@@ -1,37 +1,107 @@
 {
   "kind": "build_request",
-  "title": "Alert and auto-fill demographics when MRN already exists",
+  "title": "Add a notes field to surgery cases",
   "priority": "normal",
   "requirements": [
     {
       "id": "REQ-1",
-      "text": "When creating a new case, detect if the entered MRN matches an existing case in the cases list and (1) alert the user and (2) automatically populate MRN, date of birth, patient first name, patient last name, species, breed, and sex from the most recent existing case with that MRN.",
-      "target": "frontend",
+      "text": "Extend the backend SurgeryCase model to include a free-text notes field (e.g., `notes : Text`) that stores user-entered case notes.",
+      "target": "backend",
       "source": {
         "messageIds": [
-          "msg-4"
+          "msg-6"
         ],
         "quotes": [
-          "if adding a case with a MRN that already exists in the cases list alert the user and automatically complete the MRN,  date of birth, patient first name, patient last name, species, breed and sex using the data from the previous entry"
+          "add a field to write notes about the case"
         ]
       },
       "acceptanceCriteria": [
-        "On the New Case page, entering an MRN that already exists in the fetched cases list triggers a user-visible alert in English (e.g., a toast).",
-        "After the duplicate MRN is detected, the CaseForm fields are auto-set to the matched case’s values for: MRN, date of birth, patient first name, patient last name, species, breed, and sex.",
-        "When multiple cases share the same MRN, the form uses the most recent prior entry (define and implement as the case with the greatest arrivalDate; if tied/unavailable, fall back to the greatest id).",
-        "The auto-fill/alert behavior only runs for new-case creation (i.e., when CaseForm has no initialData) and does not interfere with editing an existing case.",
-        "The alert does not repeatedly fire on every render for the same MRN value (e.g., it should fire once per MRN entry/change)."
+        "A new `notes` field exists on the backend `SurgeryCase` record type.",
+        "Existing backend methods that return `SurgeryCase` (e.g., getCase/listCases/exportCases) include the notes field in their returned values."
+      ]
+    },
+    {
+      "id": "REQ-2",
+      "text": "Update backend case creation and update APIs to accept and persist the case notes field.",
+      "target": "backend",
+      "source": {
+        "messageIds": [
+          "msg-6"
+        ],
+        "quotes": [
+          "add a field to write notes about the case"
+        ]
+      },
+      "acceptanceCriteria": [
+        "`createCase` accepts a notes parameter and persists it into the stored SurgeryCase.",
+        "`updateCase` accepts a notes parameter and persists it into the stored SurgeryCase.",
+        "Calling create/update with notes and then fetching the case returns the same notes value."
+      ]
+    },
+    {
+      "id": "REQ-3",
+      "text": "Add an upgrade-safe state migration for the new notes field so existing stored cases continue to load after the schema change, defaulting notes to an empty string when missing.",
+      "target": "backend",
+      "source": {
+        "messageIds": [
+          "msg-6"
+        ],
+        "quotes": [
+          "add a field to write notes about the case"
+        ]
+      },
+      "acceptanceCriteria": [
+        "Upgrading an existing canister with pre-notes data does not trap on post-upgrade.",
+        "All previously-stored cases have `notes` populated with a default empty string after upgrade."
+      ]
+    },
+    {
+      "id": "REQ-4",
+      "text": "Add a multi-line \"Case Notes\" textarea field to the case-entry workflow UI (create and edit) and wire it to the backend so users can write, save, and later edit notes for a case.",
+      "target": "frontend",
+      "source": {
+        "messageIds": [
+          "msg-6"
+        ],
+        "quotes": [
+          "add a field to write notes about the case"
+        ]
+      },
+      "acceptanceCriteria": [
+        "The New Case form includes a textarea labeled \"Case Notes\".",
+        "The Case Details (edit) form includes the same textarea pre-filled with existing notes.",
+        "Submitting the form saves notes; re-opening the case shows the saved notes."
+      ]
+    },
+    {
+      "id": "REQ-5",
+      "text": "Update frontend data flow/types to include the notes field end-to-end (React Query mutations/queries, form data shape, and any import/export parsing that relies on the SurgeryCase schema).",
+      "target": "frontend",
+      "source": {
+        "messageIds": [
+          "msg-6"
+        ],
+        "quotes": [
+          "add a field to write notes about the case"
+        ]
+      },
+      "acceptanceCriteria": [
+        "Frontend `CaseFormData` includes a notes string field.",
+        "`useCreateCase` and `useUpdateCase` send notes to the backend.",
+        "JSON import/export continues to work with notes present in exported cases and accepted on import.",
+        "CSV import continues to work; if a notes column is provided, it is imported; if omitted, notes defaults to an empty string."
       ]
     }
   ],
   "constraints": [
-    "Do not edit files under frontend/src/components/ui (compose them only).",
-    "Do not modify frontend immutable paths listed in SYSTEM_CONTEXT (e.g., frontend/src/hooks/useInternetIdentity.ts(x), frontend/src/hooks/useActor.ts, frontend/src/main.tsx).",
-    "Use English for any user-facing text."
+    "Backend must remain a single Motoko actor in `backend/main.mo`.",
+    "Do not edit any files under `frontend/src/components/ui` or any paths listed in `frontend.immutablePaths`.",
+    "All user-facing text must be in English."
   ],
   "nonGoals": [
-    "Do not enforce MRN uniqueness at the backend (no trapping or rejecting creates based on MRN).",
-    "Do not change case list sorting, import/export behavior, or existing CRUD flows beyond the MRN duplicate auto-fill behavior in the new case form."
+    "Do not implement rich-text formatting for notes (plain text only).",
+    "Do not add real-time collaborative editing for notes.",
+    "Do not add new authentication providers beyond Internet Identity."
   ],
   "imageRequirements": {
     "required": [],

@@ -1,40 +1,81 @@
 {
   "kind": "coverage_report",
   "version": "1.0",
-  "generatedAt": "2026-02-15T21:05:28.840Z",
+  "generatedAt": "2026-02-15T21:20:11.630Z",
   "sources": {
     "buildRequest": true,
     "implementationPlan": true
   },
   "requirements": {
-    "total": 1,
-    "implemented": 1,
+    "total": 5,
+    "implemented": 2,
     "items": [
       {
         "id": "REQ-1",
-        "summary": "When creating a new case, detect if the entered MRN matches an existing case in the cases list and (1) alert the user and (2) automatically populate MRN, date of birth, patient first name, patient last name, species, breed, and sex from the most recent existing case with that MRN.",
+        "summary": "Extend the backend SurgeryCase model to include a free-text notes field (e.g., `notes : Text`) that stores user-entered case notes.",
+        "status": "unknown",
+        "plannedFiles": [],
+        "matchedFiles": []
+      },
+      {
+        "id": "REQ-2",
+        "summary": "Update backend case creation and update APIs to accept and persist the case notes field.",
+        "status": "unknown",
+        "plannedFiles": [],
+        "matchedFiles": []
+      },
+      {
+        "id": "REQ-3",
+        "summary": "Add an upgrade-safe state migration for the new notes field so existing stored cases continue to load after the schema change, defaulting notes to an empty string when missing.",
+        "status": "unknown",
+        "plannedFiles": [],
+        "matchedFiles": []
+      },
+      {
+        "id": "REQ-4",
+        "summary": "Add a multi-line \"Case Notes\" textarea field to the case-entry workflow UI (create and edit) and wire it to the backend so users can write, save, and later edit notes for a case.",
         "status": "implemented",
         "plannedFiles": [
-          "frontend/src/pages/NewCasePage.tsx",
-          "frontend/src/components/cases/CaseForm.tsx",
-          "frontend/src/utils/caseMatching.ts"
+          "frontend/src/components/cases/CaseForm.tsx"
         ],
         "matchedFiles": [
-          "frontend/src/pages/NewCasePage.tsx",
+          "frontend/src/components/cases/CaseForm.tsx"
+        ]
+      },
+      {
+        "id": "REQ-5",
+        "summary": "Update frontend data flow/types to include the notes field end-to-end (React Query mutations/queries, form data shape, and any import/export parsing that relies on the SurgeryCase schema).",
+        "status": "implemented",
+        "plannedFiles": [
           "frontend/src/components/cases/CaseForm.tsx",
-          "frontend/src/utils/caseMatching.ts"
+          "frontend/src/hooks/useQueries.ts",
+          "frontend/src/pages/CaseListPage.tsx",
+          "frontend/src/utils/surgeryCaseCsvImport.ts"
+        ],
+        "matchedFiles": [
+          "frontend/src/components/cases/CaseForm.tsx",
+          "frontend/src/hooks/useQueries.ts",
+          "frontend/src/pages/CaseListPage.tsx",
+          "frontend/src/utils/surgeryCaseCsvImport.ts"
         ]
       }
     ]
   },
   "changedFiles": [
+    "backend/main.mo",
+    "backend/migration.mo",
     "build-request.json",
     "feature_evidence.json",
     "frontend-file-summaries.txt",
     "frontend-implementation-plan.json",
+    "frontend/src/backend.d.ts",
+    "frontend/src/backend.ts",
     "frontend/src/components/cases/CaseForm.tsx",
-    "frontend/src/pages/NewCasePage.tsx",
-    "frontend/src/utils/caseMatching.ts",
+    "frontend/src/declarations/backend.did.d.ts",
+    "frontend/src/declarations/backend.did.js",
+    "frontend/src/hooks/useQueries.ts",
+    "frontend/src/pages/CaseListPage.tsx",
+    "frontend/src/utils/surgeryCaseCsvImport.ts",
     "project_state.json",
     "scratch/component-selection.json",
     "spec.md",

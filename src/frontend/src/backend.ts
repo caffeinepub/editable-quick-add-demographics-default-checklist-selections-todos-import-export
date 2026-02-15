@@ -104,6 +104,7 @@ export interface SurgeryCase {
     patientFirstName: string;
     imagingComplete: boolean;
     surgeryReportComplete: boolean;
+    notes: string;
     dischargeNotesComplete: boolean;
     breed: string;
     species: Species;
@@ -134,7 +135,7 @@ export interface backendInterface {
     _initializeAccessControlWithSecret(userSecret: string): Promise<void>;
     addTodoItem(caseId: bigint, description: string): Promise<bigint>;
     assignCallerUserRole(user: Principal, role: UserRole): Promise<void>;
-    createCase(mrn: string, patientFirstName: string, patientLastName: string, dateOfBirth: string, species: Species, breed: string, sex: Sex, presentingComplaint: string, arrivalDate: Time | null, dischargeNotesComplete: boolean, pdvmNotified: boolean, labsComplete: boolean, histoComplete: boolean, surgeryReportComplete: boolean, imagingComplete: boolean, cultureComplete: boolean, todoDescriptions: Array<string>): Promise<bigint>;
+    createCase(mrn: string, patientFirstName: string, patientLastName: string, dateOfBirth: string, species: Species, breed: string, sex: Sex, presentingComplaint: string, arrivalDate: Time | null, dischargeNotesComplete: boolean, pdvmNotified: boolean, labsComplete: boolean, histoComplete: boolean, surgeryReportComplete: boolean, imagingComplete: boolean, cultureComplete: boolean, notes: string, todoDescriptions: Array<string>): Promise<bigint>;
     deleteCase(id: bigint): Promise<void>;
     deleteTodoItem(caseId: bigint, todoId: bigint): Promise<void>;
     exportCases(): Promise<Array<SurgeryCase>>;
@@ -152,7 +153,7 @@ export interface backendInterface {
     togglePdvmNotified(id: bigint): Promise<boolean>;
     toggleSurgeryReport(id: bigint): Promise<boolean>;
     toggleTodoComplete(caseId: bigint, todoId: bigint): Promise<void>;
-    updateCase(id: bigint, mrn: string, patientFirstName: string, patientLastName: string, dateOfBirth: string, arrivalDate: Time, species: Species, breed: string, sex: Sex, presentingComplaint: string, dischargeNotesComplete: boolean, pdvmNotified: boolean, labsComplete: boolean, histoComplete: boolean, surgeryReportComplete: boolean, imagingComplete: boolean, cultureComplete: boolean, todos: Array<ToDoItem>): Promise<void>;
+    updateCase(id: bigint, mrn: string, patientFirstName: string, patientLastName: string, dateOfBirth: string, arrivalDate: Time, species: Species, breed: string, sex: Sex, presentingComplaint: string, dischargeNotesComplete: boolean, pdvmNotified: boolean, labsComplete: boolean, histoComplete: boolean, surgeryReportComplete: boolean, imagingComplete: boolean, cultureComplete: boolean, notes: string, todos: Array<ToDoItem>): Promise<void>;
 }
 import type { Sex as _Sex, Species as _Species, SurgeryCase as _SurgeryCase, Time as _Time, ToDoItem as _ToDoItem, UserRole as _UserRole } from "./declarations/backend.did.d.ts";
 export class Backend implements backendInterface {
@@ -199,17 +200,17 @@ export class Backend implements backendInterface {
             return result;
         }
     }
-    async createCase(arg0: string, arg1: string, arg2: string, arg3: string, arg4: Species, arg5: string, arg6: Sex, arg7: string, arg8: Time | null, arg9: boolean, arg10: boolean, arg11: boolean, arg12: boolean, arg13: boolean, arg14: boolean, arg15: boolean, arg16: Array<string>): Promise<bigint> {
+    async createCase(arg0: string, arg1: string, arg2: string, arg3: string, arg4: Species, arg5: string, arg6: Sex, arg7: string, arg8: Time | null, arg9: boolean, arg10: boolean, arg11: boolean, arg12: boolean, arg13: boolean, arg14: boolean, arg15: boolean, arg16: string, arg17: Array<string>): Promise<bigint> {
         if (this.processError) {
             try {
-                const result = await this.actor.createCase(arg0, arg1, arg2, arg3, to_candid_Species_n3(this._uploadFile, this._downloadFile, arg4), arg5, to_candid_Sex_n5(this._uploadFile, this._downloadFile, arg6), arg7, to_candid_opt_n7(this._uploadFile, this._downloadFile, arg8), arg9, arg10, arg11, arg12, arg13, arg14, arg15, arg16);
+                const result = await this.actor.createCase(arg0, arg1, arg2, arg3, to_candid_Species_n3(this._uploadFile, this._downloadFile, arg4), arg5, to_candid_Sex_n5(this._uploadFile, this._downloadFile, arg6), arg7, to_candid_opt_n7(this._uploadFile, this._downloadFile, arg8), arg9, arg10, arg11, arg12, arg13, arg14, arg15, arg16, arg17);
                 return result;
             } catch (e) {
                 this.processError(e);
                 throw new Error("unreachable");
             }
         } else {
-            const result = await this.actor.createCase(arg0, arg1, arg2, arg3, to_candid_Species_n3(this._uploadFile, this._downloadFile, arg4), arg5, to_candid_Sex_n5(this._uploadFile, this._downloadFile, arg6), arg7, to_candid_opt_n7(this._uploadFile, this._downloadFile, arg8), arg9, arg10, arg11, arg12, arg13, arg14, arg15, arg16);
+            const result = await this.actor.createCase(arg0, arg1, arg2, arg3, to_candid_Species_n3(this._uploadFile, this._downloadFile, arg4), arg5, to_candid_Sex_n5(this._uploadFile, this._downloadFile, arg6), arg7, to_candid_opt_n7(this._uploadFile, this._downloadFile, arg8), arg9, arg10, arg11, arg12, arg13, arg14, arg15, arg16, arg17);
             return result;
         }
     }
@@ -451,17 +452,17 @@ export class Backend implements backendInterface {
             return result;
         }
     }
-    async updateCase(arg0: bigint, arg1: string, arg2: string, arg3: string, arg4: string, arg5: Time, arg6: Species, arg7: string, arg8: Sex, arg9: string, arg10: boolean, arg11: boolean, arg12: boolean, arg13: boolean, arg14: boolean, arg15: boolean, arg16: boolean, arg17: Array<ToDoItem>): Promise<void> {
+    async updateCase(arg0: bigint, arg1: string, arg2: string, arg3: string, arg4: string, arg5: Time, arg6: Species, arg7: string, arg8: Sex, arg9: string, arg10: boolean, arg11: boolean, arg12: boolean, arg13: boolean, arg14: boolean, arg15: boolean, arg16: boolean, arg17: string, arg18: Array<ToDoItem>): Promise<void> {
         if (this.processError) {
             try {
-                const result = await this.actor.updateCase(arg0, arg1, arg2, arg3, arg4, arg5, to_candid_Species_n3(this._uploadFile, this._downloadFile, arg6), arg7, to_candid_Sex_n5(this._uploadFile, this._downloadFile, arg8), arg9, arg10, arg11, arg12, arg13, arg14, arg15, arg16, arg17);
+                const result = await this.actor.updateCase(arg0, arg1, arg2, arg3, arg4, arg5, to_candid_Species_n3(this._uploadFile, this._downloadFile, arg6), arg7, to_candid_Sex_n5(this._uploadFile, this._downloadFile, arg8), arg9, arg10, arg11, arg12, arg13, arg14, arg15, arg16, arg17, arg18);
                 return result;
             } catch (e) {
                 this.processError(e);
                 throw new Error("unreachable");
             }
         } else {
-            const result = await this.actor.updateCase(arg0, arg1, arg2, arg3, arg4, arg5, to_candid_Species_n3(this._uploadFile, this._downloadFile, arg6), arg7, to_candid_Sex_n5(this._uploadFile, this._downloadFile, arg8), arg9, arg10, arg11, arg12, arg13, arg14, arg15, arg16, arg17);
+            const result = await this.actor.updateCase(arg0, arg1, arg2, arg3, arg4, arg5, to_candid_Species_n3(this._uploadFile, this._downloadFile, arg6), arg7, to_candid_Sex_n5(this._uploadFile, this._downloadFile, arg8), arg9, arg10, arg11, arg12, arg13, arg14, arg15, arg16, arg17, arg18);
             return result;
         }
     }
@@ -496,6 +497,7 @@ function from_candid_record_n10(_uploadFile: (file: ExternalBlob) => Promise<Uin
     patientFirstName: string;
     imagingComplete: boolean;
     surgeryReportComplete: boolean;
+    notes: string;
     dischargeNotesComplete: boolean;
     breed: string;
     species: _Species;
@@ -515,6 +517,7 @@ function from_candid_record_n10(_uploadFile: (file: ExternalBlob) => Promise<Uin
     patientFirstName: string;
     imagingComplete: boolean;
     surgeryReportComplete: boolean;
+    notes: string;
     dischargeNotesComplete: boolean;
     breed: string;
     species: Species;
@@ -535,6 +538,7 @@ function from_candid_record_n10(_uploadFile: (file: ExternalBlob) => Promise<Uin
         patientFirstName: value.patientFirstName,
         imagingComplete: value.imagingComplete,
         surgeryReportComplete: value.surgeryReportComplete,
+        notes: value.notes,
         dischargeNotesComplete: value.dischargeNotesComplete,
         breed: value.breed,
         species: from_candid_Species_n13(_uploadFile, _downloadFile, value.species),
@@ -601,6 +605,7 @@ function to_candid_record_n20(_uploadFile: (file: ExternalBlob) => Promise<Uint8
     patientFirstName: string;
     imagingComplete: boolean;
     surgeryReportComplete: boolean;
+    notes: string;
     dischargeNotesComplete: boolean;
     breed: string;
     species: Species;
@@ -620,6 +625,7 @@ function to_candid_record_n20(_uploadFile: (file: ExternalBlob) => Promise<Uint8
     patientFirstName: string;
     imagingComplete: boolean;
     surgeryReportComplete: boolean;
+    notes: string;
     dischargeNotesComplete: boolean;
     breed: string;
     species: _Species;
@@ -640,6 +646,7 @@ function to_candid_record_n20(_uploadFile: (file: ExternalBlob) => Promise<Uint8
         patientFirstName: value.patientFirstName,
         imagingComplete: value.imagingComplete,
         surgeryReportComplete: value.surgeryReportComplete,
+        notes: value.notes,
         dischargeNotesComplete: value.dischargeNotesComplete,
         breed: value.breed,
         species: to_candid_Species_n3(_uploadFile, _downloadFile, value.species),

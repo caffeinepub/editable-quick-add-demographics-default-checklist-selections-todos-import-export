@@ -31,6 +31,7 @@ export interface CaseFormData {
   surgeryReportComplete: boolean;
   imagingComplete: boolean;
   cultureComplete: boolean;
+  notes: string;
 }
 
 interface CaseFormProps {
@@ -63,6 +64,7 @@ export default function CaseForm({ initialData, onSubmit, onCancel, isSubmitting
     surgeryReportComplete: boolean;
     imagingComplete: boolean;
     cultureComplete: boolean;
+    notes: string;
   }>({
     defaultValues: {
       mrn: initialData?.mrn || '',
@@ -81,6 +83,7 @@ export default function CaseForm({ initialData, onSubmit, onCancel, isSubmitting
       surgeryReportComplete: initialData?.surgeryReportComplete || false,
       imagingComplete: initialData?.imagingComplete || false,
       cultureComplete: initialData?.cultureComplete || false,
+      notes: initialData?.notes || '',
     },
   });
 
@@ -286,6 +289,16 @@ export default function CaseForm({ initialData, onSubmit, onCancel, isSubmitting
           {errors.presentingComplaint && (
             <p className="text-sm text-destructive">{errors.presentingComplaint.message}</p>
           )}
+        </div>
+
+        <div className="space-y-2">
+          <Label htmlFor="notes">Case Notes</Label>
+          <Textarea
+            id="notes"
+            {...register('notes')}
+            placeholder="Add any additional notes about this case..."
+            rows={4}
+          />
         </div>
       </div>
 
