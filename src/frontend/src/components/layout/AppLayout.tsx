@@ -1,32 +1,35 @@
-import { ReactNode } from 'react';
 import TopNav from './TopNav';
+import OfflineSyncListener from '../offline/OfflineSyncListener';
 
 interface AppLayoutProps {
-  children: ReactNode;
+  children: React.ReactNode;
 }
 
 export default function AppLayout({ children }: AppLayoutProps) {
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen flex flex-col bg-background">
       <TopNav />
-      <main className="container mx-auto px-4 py-8 max-w-7xl">
+      <main className="flex-1 container mx-auto px-4 py-8">
         {children}
       </main>
-      <footer className="border-t mt-16">
-        <div className="container mx-auto px-4 py-6 text-center text-sm text-muted-foreground">
+      <footer className="border-t py-6 bg-card">
+        <div className="container mx-auto px-4 text-center text-sm text-muted-foreground">
           <p>
-            © {new Date().getFullYear()} VetCase Tracker · Built with ❤️ using{' '}
+            © {new Date().getFullYear()} VetCase Tracker. Built with ❤️ using{' '}
             <a
-              href={`https://caffeine.ai/?utm_source=Caffeine-footer&utm_medium=referral&utm_content=${encodeURIComponent(window.location.hostname)}`}
+              href={`https://caffeine.ai/?utm_source=Caffeine-footer&utm_medium=referral&utm_content=${encodeURIComponent(
+                window.location.hostname
+              )}`}
               target="_blank"
               rel="noopener noreferrer"
-              className="hover:text-foreground transition-colors underline"
+              className="text-primary hover:underline"
             >
               caffeine.ai
             </a>
           </p>
         </div>
       </footer>
+      <OfflineSyncListener />
     </div>
   );
 }

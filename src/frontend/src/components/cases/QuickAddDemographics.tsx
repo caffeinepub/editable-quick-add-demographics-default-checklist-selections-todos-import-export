@@ -100,392 +100,333 @@ export default function QuickAddDemographics({ onApply, currentValues }: QuickAd
       // Show preview
       const imageUrl = URL.createObjectURL(photoFile);
       setCapturedImage(imageUrl);
-      await stopCamera();
 
-      // Extract text
+      // Process OCR
       setOcrStatus('processing');
-      const result = await extractTextFromImage(photoFile);
-      
-      if (result.success) {
-        setPastedText(result.text);
-        setOcrStatus('success');
-        setOcrError('');
-        // Auto-parse the extracted text
-        const parseResult = parseDemographics(result.text);
-        setParseResult(parseResult);
-        setEditedValues({ ...parseResult.parsed });
-      } else {
+      setOcrError('');
+
+      try {
+        const ocrResult = await extractTextFromImage(photoFile);
+        
+        if (ocrResult.success && ocrResult.text && ocrResult.text.trim()) {
+          setPastedText(ocrResult.text);
+          setOcrStatus('success');
+          
+          // Auto-parse the extracted text
+          const result = parseDemographics(ocrResult.text);
+          setParseResult(result);
+          setEditedValues({ ...result.parsed });
+        } else {
+          setOcrStatus('error');
+          setOcrError(ocrResult.error || 'No text detected in the image. Please try again with better lighting or a clearer image.');
+        }
+      } catch (error: any) {
         setOcrStatus('error');
-        setOcrError(result.error || 'Failed to extract text');
+        setOcrError(error.message || 'Failed to extract text from image');
       }
+
+      // Close camera after capture
+      await handleCloseCamera();
     }
   };
 
-  const hasChanges = editedValues && Object.keys(editedValues).length > 0;
-  const canApply = hasChanges;
+  const handleEditField = (field: keyof ParsedDemographics, value: string) => {
+    setEditedValues(prev => ({
+      ...prev,
+      [field]: value,
+    }));
+  };
 
-  return (
-    <Card className="p-6 bg-muted/30">
-      <div className="space-y-4">
+  // Camera view
+  if (showCamera) {
+    return (
+      <Card className="p-4 space-y-4 bg-muted/50">
         <div className="flex items-center justify-between">
-          <div>
-            <h4 className="text-sm font-semibold flex items-center gap-2">
-              <FileText className="h-4 w-4" />
-              Quick Add Demographics
-            </h4>
-            <p className="text-xs text-muted-foreground mt-1">
-              Paste or scan patient information to auto-fill fields
-            </p>
-          </div>
-          {(pastedText || capturedImage) && (
-            <Button variant="ghost" size="sm" onClick={handleClear}>
-              <X className="h-4 w-4 mr-1" />
-              Clear
-            </Button>
-          )}
+          <h4 className="font-medium flex items-center gap-2">
+            <Camera className="h-4 w-4" />
+            Camera Capture
+          </h4>
+          <Button
+            type="button"
+            variant="ghost"
+            size="sm"
+            onClick={handleCloseCamera}
+            disabled={cameraLoading}
+          >
+            <X className="h-4 w-4" />
+          </Button>
         </div>
 
-        {!showCamera && !capturedImage && (
-          <>
-            <div className="space-y-2">
-              <Label htmlFor="quickAddText" className="text-xs">
-                Paste demographics text
-              </Label>
-              <Textarea
-                id="quickAddText"
-                value={pastedText}
-                onChange={(e) => setPastedText(e.target.value)}
-                placeholder="Paste patient demographics here (e.g., MRN: 12345, Name: Max Smith, DOB: 01/15/2020, Species: Canine, Breed: Labrador, Sex: Male)"
-                rows={4}
-                className="text-sm"
-              />
-            </div>
-
-            <div className="flex gap-2">
-              <Button
-                type="button"
-                variant="outline"
-                size="sm"
-                onClick={handleParse}
-                disabled={!pastedText.trim()}
-              >
-                Parse Text
-              </Button>
-              <Button
-                type="button"
-                variant="outline"
-                size="sm"
-                onClick={handleOpenCamera}
-                disabled={isSupported === false}
-              >
-                <Camera className="h-4 w-4 mr-2" />
-                Use Camera
-              </Button>
-            </div>
-
-            {isSupported === false && (
-              <Alert>
-                <AlertCircle className="h-4 w-4" />
-                <AlertDescription className="text-xs">
-                  Camera is not supported on this device. Please use the paste option.
-                </AlertDescription>
-              </Alert>
-            )}
-          </>
+        {cameraError && (
+          <Alert variant="destructive">
+            <AlertCircle className="h-4 w-4" />
+            <AlertDescription>
+              {cameraError.message}
+            </AlertDescription>
+          </Alert>
         )}
 
-        {showCamera && !capturedImage && (
-          <div className="space-y-3">
-            <div className="relative bg-black rounded-lg overflow-hidden" style={{ minHeight: '300px', aspectRatio: '4/3' }}>
-              <video
-                ref={videoRef}
-                autoPlay
-                playsInline
-                muted
-                className="w-full h-full object-cover"
-                style={{ minHeight: '300px' }}
-              />
-              <canvas ref={canvasRef} className="hidden" />
-            </div>
+        {isSupported === false && (
+          <Alert variant="destructive">
+            <AlertCircle className="h-4 w-4" />
+            <AlertDescription>
+              Camera is not supported in this browser.
+            </AlertDescription>
+          </Alert>
+        )}
 
-            {cameraError && (
-              <Alert variant="destructive">
-                <AlertCircle className="h-4 w-4" />
-                <AlertDescription className="text-xs">
-                  {cameraError.message}
-                </AlertDescription>
-              </Alert>
+        <div className="relative w-full bg-black rounded-lg overflow-hidden" style={{ aspectRatio: '4/3' }}>
+          <video
+            ref={videoRef}
+            autoPlay
+            playsInline
+            muted
+            className="w-full h-full object-cover"
+          />
+          <canvas ref={canvasRef} className="hidden" />
+        </div>
+
+        <div className="flex gap-2">
+          <Button
+            type="button"
+            onClick={handleCapture}
+            disabled={!isActive || cameraLoading}
+            className="flex-1"
+          >
+            {cameraLoading ? (
+              <>
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                Initializing...
+              </>
+            ) : (
+              <>
+                <Camera className="mr-2 h-4 w-4" />
+                Capture
+              </>
             )}
+          </Button>
+        </div>
 
-            <div className="flex gap-2">
-              <Button
-                type="button"
-                variant="default"
-                size="sm"
-                onClick={handleCapture}
-                disabled={!isActive || cameraLoading}
-              >
-                <Camera className="h-4 w-4 mr-2" />
-                Capture Photo
-              </Button>
-              <Button
-                type="button"
-                variant="outline"
-                size="sm"
-                onClick={handleCloseCamera}
-              >
-                Cancel
-              </Button>
-            </div>
+        {!isTextDetectionSupported() && (
+          <Alert>
+            <AlertCircle className="h-4 w-4" />
+            <AlertDescription>
+              Text detection is not supported in this browser. The captured image will be saved but text extraction may not work.
+            </AlertDescription>
+          </Alert>
+        )}
+      </Card>
+    );
+  }
 
-            {!isTextDetectionSupported() && (
-              <Alert>
-                <AlertCircle className="h-4 w-4" />
-                <AlertDescription className="text-xs">
-                  Text detection is not supported in your browser. The captured image may not extract text automatically. Consider using the paste option instead.
-                </AlertDescription>
-              </Alert>
-            )}
+  return (
+    <Card className="p-4 space-y-4 bg-muted/50">
+      <div className="flex items-center justify-between">
+        <h4 className="font-medium flex items-center gap-2">
+          <FileText className="h-4 w-4" />
+          Quick Add Demographics
+        </h4>
+        {parseResult && (
+          <Button
+            type="button"
+            variant="ghost"
+            size="sm"
+            onClick={handleClear}
+          >
+            <X className="h-4 w-4" />
+          </Button>
+        )}
+      </div>
+
+      {!parseResult ? (
+        <>
+          <div className="space-y-2">
+            <Label htmlFor="pastedText">Paste demographics text or use camera</Label>
+            <Textarea
+              id="pastedText"
+              value={pastedText}
+              onChange={(e) => setPastedText(e.target.value)}
+              placeholder="Paste patient demographics here (e.g., from a form or document)..."
+              rows={4}
+            />
           </div>
-        )}
 
-        {capturedImage && (
-          <div className="space-y-3">
-            <div className="relative rounded-lg overflow-hidden border">
-              <img src={capturedImage} alt="Captured" className="w-full h-auto" />
+          <div className="flex gap-2">
+            <Button
+              type="button"
+              onClick={handleParse}
+              disabled={!pastedText.trim()}
+              className="flex-1"
+            >
+              Parse Text
+            </Button>
+            <Button
+              type="button"
+              variant="outline"
+              onClick={handleOpenCamera}
+            >
+              <Camera className="h-4 w-4" />
+            </Button>
+          </div>
+
+          {capturedImage && ocrStatus === 'processing' && (
+            <div className="flex items-center gap-2 text-sm text-muted-foreground">
+              <Loader2 className="h-4 w-4 animate-spin" />
+              Extracting text from image...
             </div>
+          )}
 
-            {ocrStatus === 'processing' && (
-              <Alert>
-                <Loader2 className="h-4 w-4 animate-spin" />
-                <AlertDescription className="text-xs">
-                  Extracting text from image...
-                </AlertDescription>
-              </Alert>
-            )}
-
-            {ocrStatus === 'error' && (
-              <Alert variant="destructive">
-                <AlertCircle className="h-4 w-4" />
-                <AlertDescription className="text-xs">
-                  {ocrError}
-                </AlertDescription>
-              </Alert>
-            )}
-
-            {ocrStatus === 'success' && pastedText && (
-              <div className="space-y-2">
-                <Label className="text-xs">Extracted text:</Label>
-                <Textarea
-                  value={pastedText}
-                  onChange={(e) => setPastedText(e.target.value)}
-                  rows={4}
-                  className="text-sm"
+          {ocrStatus === 'error' && ocrError && (
+            <Alert variant="destructive">
+              <AlertCircle className="h-4 w-4" />
+              <AlertDescription>{ocrError}</AlertDescription>
+            </Alert>
+          )}
+        </>
+      ) : (
+        <>
+          <Separator />
+          
+          <div className="space-y-3">
+            <h5 className="text-sm font-medium">Edit Parsed Values</h5>
+            
+            {editedValues.mrn !== undefined && (
+              <div className="space-y-1">
+                <Label htmlFor="edit-mrn" className="text-xs">MRN</Label>
+                <Input
+                  id="edit-mrn"
+                  value={editedValues.mrn || ''}
+                  onChange={(e) => handleEditField('mrn', e.target.value)}
                 />
               </div>
             )}
 
-            <Button
-              type="button"
-              variant="outline"
-              size="sm"
-              onClick={handleCloseCamera}
-            >
-              <Camera className="h-4 w-4 mr-2" />
-              Take Another Photo
-            </Button>
+            {editedValues.patientFirstName !== undefined && (
+              <div className="space-y-1">
+                <Label htmlFor="edit-firstName" className="text-xs">First Name</Label>
+                <Input
+                  id="edit-firstName"
+                  value={editedValues.patientFirstName || ''}
+                  onChange={(e) => handleEditField('patientFirstName', e.target.value)}
+                />
+              </div>
+            )}
+
+            {editedValues.patientLastName !== undefined && (
+              <div className="space-y-1">
+                <Label htmlFor="edit-lastName" className="text-xs">Last Name</Label>
+                <Input
+                  id="edit-lastName"
+                  value={editedValues.patientLastName || ''}
+                  onChange={(e) => handleEditField('patientLastName', e.target.value)}
+                />
+              </div>
+            )}
+
+            {editedValues.dateOfBirth !== undefined && (
+              <div className="space-y-1">
+                <Label htmlFor="edit-dob" className="text-xs">Date of Birth</Label>
+                <Input
+                  id="edit-dob"
+                  type="date"
+                  value={editedValues.dateOfBirth || ''}
+                  onChange={(e) => handleEditField('dateOfBirth', e.target.value)}
+                />
+              </div>
+            )}
+
+            {editedValues.species !== undefined && (
+              <div className="space-y-1">
+                <Label htmlFor="edit-species" className="text-xs">Species</Label>
+                <Select
+                  value={editedValues.species || ''}
+                  onValueChange={(value) => handleEditField('species', value)}
+                >
+                  <SelectTrigger id="edit-species">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="canine">Canine</SelectItem>
+                    <SelectItem value="feline">Feline</SelectItem>
+                    <SelectItem value="other">Other</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            )}
+
+            {editedValues.breed !== undefined && (
+              <div className="space-y-1">
+                <Label htmlFor="edit-breed" className="text-xs">Breed</Label>
+                <Input
+                  id="edit-breed"
+                  value={editedValues.breed || ''}
+                  onChange={(e) => handleEditField('breed', e.target.value)}
+                />
+              </div>
+            )}
+
+            {editedValues.sex !== undefined && (
+              <div className="space-y-1">
+                <Label htmlFor="edit-sex" className="text-xs">Sex</Label>
+                <Select
+                  value={editedValues.sex || ''}
+                  onValueChange={(value) => handleEditField('sex', value)}
+                >
+                  <SelectTrigger id="edit-sex">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="male">Male</SelectItem>
+                    <SelectItem value="female">Female</SelectItem>
+                    <SelectItem value="maleNeutered">Male Neutered</SelectItem>
+                    <SelectItem value="femaleSpayed">Female Spayed</SelectItem>
+                    <SelectItem value="unknown_">Unknown</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            )}
+
+            {editedValues.arrivalDate !== undefined && (
+              <div className="space-y-1">
+                <Label htmlFor="edit-arrivalDate" className="text-xs">Arrival Date</Label>
+                <Input
+                  id="edit-arrivalDate"
+                  type="date"
+                  value={editedValues.arrivalDate || ''}
+                  onChange={(e) => handleEditField('arrivalDate', e.target.value)}
+                />
+              </div>
+            )}
           </div>
-        )}
 
-        {parseResult && (
-          <>
-            <Separator />
-            <div className="space-y-3">
-              <h5 className="text-xs font-semibold">Edit Parsed Values</h5>
+          {parseResult.notFound.length > 0 && (
+            <Alert>
+              <AlertCircle className="h-4 w-4" />
+              <AlertDescription className="text-xs">
+                Not found: {parseResult.notFound.map(getFieldLabel).join(', ')}
+              </AlertDescription>
+            </Alert>
+          )}
 
-              {!hasChanges && (
-                <Alert variant="destructive">
-                  <AlertCircle className="h-4 w-4" />
-                  <AlertDescription className="text-xs">
-                    No fields could be recognized from the provided text. Please check the format and try again.
-                  </AlertDescription>
-                </Alert>
-              )}
+          {parseResult.uncertain.length > 0 && (
+            <Alert>
+              <AlertCircle className="h-4 w-4" />
+              <AlertDescription className="text-xs">
+                Uncertain: {parseResult.uncertain.map(getFieldLabel).join(', ')}
+              </AlertDescription>
+            </Alert>
+          )}
 
-              {hasChanges && (
-                <>
-                  <div className="space-y-3">
-                    {editedValues.mrn !== undefined && (
-                      <div className="space-y-1">
-                        <Label htmlFor="edit-mrn" className="text-xs font-medium">
-                          {getFieldLabel('mrn')}
-                        </Label>
-                        <Input
-                          id="edit-mrn"
-                          value={editedValues.mrn || ''}
-                          onChange={(e) => setEditedValues({ ...editedValues, mrn: e.target.value })}
-                          className="text-sm"
-                        />
-                      </div>
-                    )}
-
-                    {editedValues.patientFirstName !== undefined && (
-                      <div className="space-y-1">
-                        <Label htmlFor="edit-firstName" className="text-xs font-medium">
-                          {getFieldLabel('patientFirstName')}
-                        </Label>
-                        <Input
-                          id="edit-firstName"
-                          value={editedValues.patientFirstName || ''}
-                          onChange={(e) => setEditedValues({ ...editedValues, patientFirstName: e.target.value })}
-                          className="text-sm"
-                        />
-                      </div>
-                    )}
-
-                    {editedValues.patientLastName !== undefined && (
-                      <div className="space-y-1">
-                        <Label htmlFor="edit-lastName" className="text-xs font-medium">
-                          {getFieldLabel('patientLastName')}
-                        </Label>
-                        <Input
-                          id="edit-lastName"
-                          value={editedValues.patientLastName || ''}
-                          onChange={(e) => setEditedValues({ ...editedValues, patientLastName: e.target.value })}
-                          className="text-sm"
-                        />
-                      </div>
-                    )}
-
-                    {editedValues.dateOfBirth !== undefined && (
-                      <div className="space-y-1">
-                        <Label htmlFor="edit-dob" className="text-xs font-medium">
-                          {getFieldLabel('dateOfBirth')}
-                        </Label>
-                        <Input
-                          id="edit-dob"
-                          type="date"
-                          value={editedValues.dateOfBirth || ''}
-                          onChange={(e) => setEditedValues({ ...editedValues, dateOfBirth: e.target.value })}
-                          className="text-sm"
-                        />
-                      </div>
-                    )}
-
-                    {editedValues.species !== undefined && (
-                      <div className="space-y-1">
-                        <Label htmlFor="edit-species" className="text-xs font-medium">
-                          {getFieldLabel('species')}
-                        </Label>
-                        <Select
-                          value={editedValues.species}
-                          onValueChange={(value) => setEditedValues({ ...editedValues, species: value as Species })}
-                        >
-                          <SelectTrigger id="edit-species" className="text-sm">
-                            <SelectValue />
-                          </SelectTrigger>
-                          <SelectContent>
-                            <SelectItem value="canine">Canine</SelectItem>
-                            <SelectItem value="feline">Feline</SelectItem>
-                            <SelectItem value="other">Other</SelectItem>
-                          </SelectContent>
-                        </Select>
-                      </div>
-                    )}
-
-                    {editedValues.breed !== undefined && (
-                      <div className="space-y-1">
-                        <Label htmlFor="edit-breed" className="text-xs font-medium">
-                          {getFieldLabel('breed')}
-                        </Label>
-                        <Input
-                          id="edit-breed"
-                          value={editedValues.breed || ''}
-                          onChange={(e) => setEditedValues({ ...editedValues, breed: e.target.value })}
-                          className="text-sm"
-                        />
-                      </div>
-                    )}
-
-                    {editedValues.sex !== undefined && (
-                      <div className="space-y-1">
-                        <Label htmlFor="edit-sex" className="text-xs font-medium">
-                          {getFieldLabel('sex')}
-                        </Label>
-                        <Select
-                          value={editedValues.sex}
-                          onValueChange={(value) => setEditedValues({ ...editedValues, sex: value as Sex })}
-                        >
-                          <SelectTrigger id="edit-sex" className="text-sm">
-                            <SelectValue />
-                          </SelectTrigger>
-                          <SelectContent>
-                            <SelectItem value="male">Male</SelectItem>
-                            <SelectItem value="female">Female</SelectItem>
-                            <SelectItem value="unknown_">Unknown</SelectItem>
-                          </SelectContent>
-                        </Select>
-                      </div>
-                    )}
-
-                    {editedValues.arrivalDate !== undefined && (
-                      <div className="space-y-1">
-                        <Label htmlFor="edit-arrival" className="text-xs font-medium">
-                          {getFieldLabel('arrivalDate')}
-                        </Label>
-                        <Input
-                          id="edit-arrival"
-                          type="date"
-                          value={editedValues.arrivalDate || ''}
-                          onChange={(e) => setEditedValues({ ...editedValues, arrivalDate: e.target.value })}
-                          className="text-sm"
-                        />
-                      </div>
-                    )}
-                  </div>
-
-                  {parseResult.uncertain.length > 0 && (
-                    <Alert>
-                      <AlertCircle className="h-4 w-4" />
-                      <AlertDescription className="text-xs">
-                        <strong>Uncertain fields:</strong> {parseResult.uncertain.map(f => getFieldLabel(f as any)).join(', ')}. Please verify the values above.
-                      </AlertDescription>
-                    </Alert>
-                  )}
-
-                  {parseResult.notFound.length > 0 && (
-                    <div className="space-y-2">
-                      <div className="text-xs font-medium text-muted-foreground">
-                        Not found (will not be changed):
-                      </div>
-                      <div className="flex flex-wrap gap-1">
-                        {parseResult.notFound.map((field) => (
-                          <span
-                            key={field}
-                            className="text-xs bg-muted px-2 py-1 rounded"
-                          >
-                            {getFieldLabel(field as any)}
-                          </span>
-                        ))}
-                      </div>
-                    </div>
-                  )}
-
-                  <Button
-                    type="button"
-                    size="sm"
-                    onClick={handleApply}
-                    disabled={!canApply}
-                    className="w-full"
-                  >
-                    Apply to Form
-                  </Button>
-                </>
-              )}
-            </div>
-          </>
-        )}
-      </div>
+          <Button
+            type="button"
+            onClick={handleApply}
+            disabled={!editedValues || Object.keys(editedValues).length === 0}
+            className="w-full"
+          >
+            Apply to Form
+          </Button>
+        </>
+      )}
     </Card>
   );
 }

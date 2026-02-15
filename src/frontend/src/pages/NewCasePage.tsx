@@ -1,5 +1,6 @@
 import { useNavigate } from '@tanstack/react-router';
 import { useCreateCase, useListCases } from '../hooks/useQueries';
+import { useOfflineStatus } from '../hooks/useOfflineStatus';
 import CaseForm from '../components/cases/CaseForm';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { ArrowLeft } from 'lucide-react';
@@ -9,13 +10,18 @@ import type { CaseFormData } from '../components/cases/CaseForm';
 
 export default function NewCasePage() {
   const navigate = useNavigate();
+  const { isOffline } = useOfflineStatus();
   const createCase = useCreateCase();
   const { data: existingCases = [] } = useListCases();
 
   const handleSubmit = async (data: CaseFormData) => {
     try {
       await createCase.mutateAsync(data);
-      toast.success('Case created successfully');
+      if (isOffline) {
+        toast.success('Case created (will sync when online)');
+      } else {
+        toast.success('Case created successfully');
+      }
       navigate({ to: '/' });
     } catch (error) {
       toast.error('Failed to create case');

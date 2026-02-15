@@ -253,6 +253,8 @@ export default function CaseForm({ initialData, onSubmit, onCancel, isSubmitting
               <SelectContent>
                 <SelectItem value="male">Male</SelectItem>
                 <SelectItem value="female">Female</SelectItem>
+                <SelectItem value="maleNeutered">Male Neutered</SelectItem>
+                <SelectItem value="femaleSpayed">Female Spayed</SelectItem>
                 <SelectItem value="unknown_">Unknown</SelectItem>
               </SelectContent>
             </Select>

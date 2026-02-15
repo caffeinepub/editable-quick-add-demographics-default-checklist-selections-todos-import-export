@@ -13,7 +13,7 @@ import { Species as SpeciesEnum, Sex as SexEnum } from '../backend';
  * - arrivalDate: Arrival date/time (YYYY-MM-DD, YYYY-MM-DD HH:MM:SS, or ISO 8601 format)
  * - species: canine, feline, or other (case-insensitive)
  * - breed: Breed name (text)
- * - sex: male, female, or unknown (case-insensitive)
+ * - sex: male, female, male neutered (or MN), female spayed (or FS), or unknown (case-insensitive)
  * - presentingComplaint: Presenting complaint (text)
  * 
  * Optional boolean columns (case-insensitive, accepts: true/false, yes/no, 1/0, checked/unchecked):
@@ -108,11 +108,46 @@ function parseSpecies(value: string): Species {
  * Parse sex enum value
  */
 function parseSex(value: string): Sex {
-  const normalized = value.toLowerCase().trim();
-  if (normalized === 'male') return SexEnum.male;
-  if (normalized === 'female') return SexEnum.female;
-  if (normalized === 'unknown') return SexEnum.unknown_;
-  throw new Error(`Invalid sex value: "${value}". Must be male, female, or unknown.`);
+  const normalized = value.toLowerCase().trim().replace(/[\s_-]/g, '');
+  
+  // Male variants
+  if (normalized === 'male' || normalized === 'm') {
+    return SexEnum.male;
+  }
+  
+  // Female variants
+  if (normalized === 'female' || normalized === 'f') {
+    return SexEnum.female;
+  }
+  
+  // Male Neutered variants
+  if (
+    normalized === 'maleneutered' ||
+    normalized === 'mn' ||
+    normalized === 'neuteredmale' ||
+    normalized === 'neutered'
+  ) {
+    return SexEnum.maleNeutered;
+  }
+  
+  // Female Spayed variants
+  if (
+    normalized === 'femalespayed' ||
+    normalized === 'fs' ||
+    normalized === 'spayedfemale' ||
+    normalized === 'spayed'
+  ) {
+    return SexEnum.femaleSpayed;
+  }
+  
+  // Unknown variants
+  if (normalized === 'unknown' || normalized === 'u') {
+    return SexEnum.unknown_;
+  }
+  
+  throw new Error(
+    `Invalid sex value: "${value}". Must be one of: Male, Female, Male Neutered (MN), Female Spayed (FS), or Unknown.`
+  );
 }
 
 /**

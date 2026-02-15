@@ -21,6 +21,8 @@ export const Species = IDL.Variant({
 export const Sex = IDL.Variant({
   'female' : IDL.Null,
   'male' : IDL.Null,
+  'femaleSpayed' : IDL.Null,
+  'maleNeutered' : IDL.Null,
   'unknown' : IDL.Null,
 });
 export const Time = IDL.Int;
@@ -139,6 +141,8 @@ export const idlFactory = ({ IDL }) => {
   const Sex = IDL.Variant({
     'female' : IDL.Null,
     'male' : IDL.Null,
+    'femaleSpayed' : IDL.Null,
+    'maleNeutered' : IDL.Null,
     'unknown' : IDL.Null,
   });
   const Time = IDL.Int;

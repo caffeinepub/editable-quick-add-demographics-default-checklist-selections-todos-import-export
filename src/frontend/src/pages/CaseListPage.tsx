@@ -1,29 +1,44 @@
 import { useState, useMemo, useRef } from 'react';
 import { useNavigate } from '@tanstack/react-router';
 import { useListCases, useExportCases, useImportCases } from '../hooks/useQueries';
+import { useOfflineStatus } from '../hooks/useOfflineStatus';
+import { useInternetIdentity } from '../hooks/useInternetIdentity';
+import { hasCaseListCache } from '../utils/offlineDb';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Search, Plus, FileText, Download, Upload } from 'lucide-react';
+import { Search, Plus, FileText, Download, Upload, WifiOff } from 'lucide-react';
 import { formatDate } from '../utils/dateTime';
 import { toast } from 'sonner';
 import { parseCsvToSurgeryCases } from '../utils/surgeryCaseCsvImport';
 import type { SurgeryCase, Species } from '../backend';
+import { useEffect } from 'react';
 
 type SortOption = 'arrival-newest' | 'arrival-oldest' | 'mrn-asc';
 
 export default function CaseListPage() {
   const navigate = useNavigate();
-  const { data: cases = [], isLoading } = useListCases();
+  const { data: cases = [], isLoading, error } = useListCases();
+  const { isOffline } = useOfflineStatus();
+  const { identity } = useInternetIdentity();
   const [searchTerm, setSearchTerm] = useState('');
   const [sortBy, setSortBy] = useState<SortOption>('arrival-newest');
+  const [hasCache, setHasCache] = useState<boolean | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   
   const exportCases = useExportCases();
   const importCases = useImportCases();
+
+  const principal = identity?.getPrincipal().toString();
+
+  useEffect(() => {
+    if (principal) {
+      hasCaseListCache(principal).then(setHasCache);
+    }
+  }, [principal]);
 
   const filteredAndSortedCases = useMemo(() => {
     // First filter
@@ -164,6 +179,27 @@ export default function CaseListPage() {
     );
   }
 
+  // Show offline empty state if offline and no cache
+  if (isOffline && hasCache === false && cases.length === 0) {
+    return (
+      <div className="flex items-center justify-center py-12">
+        <Card className="max-w-md">
+          <CardContent className="pt-6">
+            <div className="text-center space-y-4">
+              <WifiOff className="h-12 w-12 text-muted-foreground mx-auto" />
+              <div>
+                <h3 className="text-lg font-semibold">Offline Mode</h3>
+                <p className="text-sm text-muted-foreground mt-2">
+                  You're currently offline. Case data must be loaded at least once while online to view it offline.
+                </p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-6">
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
@@ -171,6 +207,11 @@ export default function CaseListPage() {
           <h1 className="text-3xl font-bold">Surgery Cases</h1>
           <p className="text-muted-foreground mt-1">
             {cases.length} {cases.length === 1 ? 'case' : 'cases'} total
+            {isOffline && cases.length > 0 && (
+              <Badge variant="secondary" className="ml-2">
+                Cached
+              </Badge>
+            )}
           </p>
         </div>
         <div className="flex gap-2">
@@ -178,7 +219,7 @@ export default function CaseListPage() {
             variant="outline"
             size="sm"
             onClick={handleExport}
-            disabled={exportCases.isPending || cases.length === 0}
+            disabled={exportCases.isPending || cases.length === 0 || isOffline}
           >
             <Download className="mr-2 h-4 w-4" />
             Export
@@ -187,7 +228,7 @@ export default function CaseListPage() {
             variant="outline"
             size="sm"
             onClick={handleImportClick}
-            disabled={importCases.isPending}
+            disabled={importCases.isPending || isOffline}
           >
             <Upload className="mr-2 h-4 w-4" />
             Import
@@ -236,11 +277,11 @@ export default function CaseListPage() {
         <CardContent>
           {filteredAndSortedCases.length === 0 ? (
             <div className="text-center py-12">
-              <FileText className="h-16 w-16 text-muted-foreground/40 mx-auto mb-4" />
+              <FileText className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
               <h3 className="text-lg font-semibold mb-2">
                 {searchTerm ? 'No cases found' : 'No cases yet'}
               </h3>
-              <p className="text-muted-foreground mb-6">
+              <p className="text-muted-foreground mb-4">
                 {searchTerm
                   ? 'Try adjusting your search terms'
                   : 'Get started by creating your first surgery case'}
@@ -253,7 +294,7 @@ export default function CaseListPage() {
               )}
             </div>
           ) : (
-            <div className="rounded-md border">
+            <div className="overflow-x-auto">
               <Table>
                 <TableHeader>
                   <TableRow>
@@ -262,27 +303,40 @@ export default function CaseListPage() {
                     <TableHead>Species</TableHead>
                     <TableHead>Arrival Date</TableHead>
                     <TableHead>Presenting Complaint</TableHead>
+                    <TableHead className="text-right">Actions</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {filteredAndSortedCases.map((caseRecord) => (
+                  {filteredAndSortedCases.map((caseItem) => (
                     <TableRow
-                      key={caseRecord.id.toString()}
+                      key={caseItem.id.toString()}
                       className="cursor-pointer hover:bg-muted/50"
-                      onClick={() => navigate({ to: `/cases/${caseRecord.id}` })}
+                      onClick={() => navigate({ to: `/cases/${caseItem.id}` })}
                     >
-                      <TableCell className="font-medium">{caseRecord.mrn}</TableCell>
+                      <TableCell className="font-medium">{caseItem.mrn}</TableCell>
                       <TableCell>
-                        {caseRecord.patientFirstName} {caseRecord.patientLastName}
+                        {caseItem.patientFirstName} {caseItem.patientLastName}
                       </TableCell>
                       <TableCell>
-                        <Badge variant={getSpeciesBadgeVariant(caseRecord.species)}>
-                          {getSpeciesLabel(caseRecord.species)}
+                        <Badge variant={getSpeciesBadgeVariant(caseItem.species)}>
+                          {getSpeciesLabel(caseItem.species)}
                         </Badge>
                       </TableCell>
-                      <TableCell>{formatDate(caseRecord.arrivalDate)}</TableCell>
+                      <TableCell>{formatDate(caseItem.arrivalDate)}</TableCell>
                       <TableCell className="max-w-xs truncate">
-                        {caseRecord.presentingComplaint}
+                        {caseItem.presentingComplaint}
+                      </TableCell>
+                      <TableCell className="text-right">
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            navigate({ to: `/cases/${caseItem.id}` });
+                          }}
+                        >
+                          View Details
+                        </Button>
                       </TableCell>
                     </TableRow>
                   ))}

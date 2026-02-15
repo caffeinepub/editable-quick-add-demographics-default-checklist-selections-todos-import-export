@@ -119,6 +119,8 @@ export interface ToDoItem {
 export enum Sex {
     female = "female",
     male = "male",
+    femaleSpayed = "femaleSpayed",
+    maleNeutered = "maleNeutered",
     unknown_ = "unknown"
 }
 export enum Species {
@@ -550,9 +552,13 @@ function from_candid_variant_n12(_uploadFile: (file: ExternalBlob) => Promise<Ui
 } | {
     male: null;
 } | {
+    femaleSpayed: null;
+} | {
+    maleNeutered: null;
+} | {
     unknown: null;
 }): Sex {
-    return "female" in value ? Sex.female : "male" in value ? Sex.male : "unknown" in value ? Sex.unknown : value;
+    return "female" in value ? Sex.female : "male" in value ? Sex.male : "femaleSpayed" in value ? Sex.femaleSpayed : "maleNeutered" in value ? Sex.maleNeutered : "unknown" in value ? Sex.unknown : value;
 }
 function from_candid_variant_n14(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: {
     other: null;
@@ -688,12 +694,20 @@ function to_candid_variant_n6(_uploadFile: (file: ExternalBlob) => Promise<Uint8
 } | {
     male: null;
 } | {
+    femaleSpayed: null;
+} | {
+    maleNeutered: null;
+} | {
     unknown: null;
 } {
     return value == Sex.female ? {
         female: null
     } : value == Sex.male ? {
         male: null
+    } : value == Sex.femaleSpayed ? {
+        femaleSpayed: null
+    } : value == Sex.maleNeutered ? {
+        maleNeutered: null
     } : value == Sex.unknown ? {
         unknown_: null
     } : value;

@@ -1,13 +1,13 @@
 # Specification
 
 ## Summary
-**Goal:** Add a plain-text notes field to surgery cases so users can write, save, and edit case notes.
+**Goal:** Add an offline mode for surgery cases that caches previously loaded data locally and safely queues changes for deferred sync when connectivity returns.
 
 **Planned changes:**
-- Extend the backend `SurgeryCase` model with a free-text `notes` field and include it in all APIs that return cases (e.g., getCase/listCases/exportCases).
-- Update backend `createCase`/`updateCase` APIs to accept and persist the `notes` field.
-- Add an upgrade-safe backend migration so existing stored cases load after the schema change, defaulting missing `notes` to an empty string.
-- Update the frontend case create/edit workflow to include a multi-line “Case Notes” textarea, prefilled on edit, and saved to the backend.
-- Update frontend types and data flow end-to-end (queries/mutations and import/export) to include `notes`, with CSV/JSON handling defaulting to empty string when missing.
+- Cache the case list and case detail/to-do data in durable browser storage (prefer IndexedDB) and restore it on app start, scoped per authenticated Internet Identity principal.
+- Add an offline/connectivity indicator plus cache/sync status in the main navigation/layout, updating automatically as connectivity changes.
+- When offline (or when canister calls fail due to network), queue case/to-do write operations locally, apply optimistic UI updates, and replay the queue automatically once online.
+- Persist the pending-operations queue across reloads; reconcile by refreshing React Query cache after successful replay and keep failed operations pending with an English error message.
+- Add basic offline data controls: “Sync now”, show count/list of pending changes, and allow clearing pending changes only after confirmation with a warning about discarding unsynced edits.
 
-**User-visible outcome:** Users can enter multi-line case notes when creating or editing a surgery case, and those notes are saved, shown when reopening the case, and included in imports/exports.
+**User-visible outcome:** Users can view previously loaded case lists and case details while offline, keep working with optimistic edits, see offline/sync status in the UI, and sync or manage pending changes once back online.

@@ -28,6 +28,10 @@ const FIELD_LABELS: Record<keyof ParsedDemographics, string> = {
   arrivalDate: 'Arrival Date',
 };
 
+export function getFieldLabel(field: string): string {
+  return FIELD_LABELS[field as keyof ParsedDemographics] || field;
+}
+
 /**
  * Parse free-text demographics into structured case fields
  */
@@ -115,26 +119,41 @@ export function parseDemographics(text: string): ParseResult {
   }
 
   // Parse breed
-  const breedMatch = text.match(/(?:breed)[:\s]+([a-z\s]+?)(?:\n|$|sex|species|male|female)/i);
+  const breedMatch = text.match(/(?:breed)[:\s]+([a-z\s]+?)(?:\n|$|sex|species|male|female|neutered|spayed)/i);
   if (breedMatch) {
     parsed.breed = breedMatch[1].trim();
   } else {
     notFound.push('breed');
   }
 
-  // Parse sex - normalize to male/female/unknown_
-  if (fullText.includes('male') && !fullText.includes('female')) {
+  // Parse sex - normalize to male/female/maleNeutered/femaleSpayed/unknown_
+  // Check for neutered/spayed indicators
+  const hasNeutered = /neutered|castrated|mn\b/i.test(fullText);
+  const hasSpayed = /spayed|fs\b/i.test(fullText);
+  const hasMale = /\bmale\b/i.test(fullText) && !/female/i.test(fullText);
+  const hasFemale = /female/i.test(fullText);
+
+  if (hasMale && hasNeutered) {
+    parsed.sex = 'maleNeutered' as Sex;
+  } else if (hasFemale && hasSpayed) {
+    parsed.sex = 'femaleSpayed' as Sex;
+  } else if (hasMale) {
     parsed.sex = 'male' as Sex;
-  } else if (fullText.includes('female')) {
+  } else if (hasFemale) {
     parsed.sex = 'female' as Sex;
   } else {
-    const sexMatch = text.match(/(?:sex|gender)[:\s]+(male|female|unknown|m|f)/i);
+    // Try explicit sex field match
+    const sexMatch = text.match(/(?:sex|gender)[:\s]+(male\s*neutered|female\s*spayed|male|female|unknown|mn|fs|m|f)/i);
     if (sexMatch) {
-      const sexValue = sexMatch[1].toLowerCase();
+      const sexValue = sexMatch[1].toLowerCase().replace(/\s+/g, '');
       if (sexValue === 'male' || sexValue === 'm') {
         parsed.sex = 'male' as Sex;
       } else if (sexValue === 'female' || sexValue === 'f') {
         parsed.sex = 'female' as Sex;
+      } else if (sexValue === 'maleneutered' || sexValue === 'mn') {
+        parsed.sex = 'maleNeutered' as Sex;
+      } else if (sexValue === 'femalespayed' || sexValue === 'fs') {
+        parsed.sex = 'femaleSpayed' as Sex;
       } else {
         parsed.sex = 'unknown_' as Sex;
       }
@@ -176,18 +195,5 @@ function parseDate(dateStr: string): string | null {
     return `${year}-${month}-${day}`;
   }
 
-  // Try YYYY/MM/DD
-  const isoSlashMatch = dateStr.match(/^(\d{4})\/(\d{1,2})\/(\d{1,2})$/);
-  if (isoSlashMatch) {
-    const year = isoSlashMatch[1];
-    const month = isoSlashMatch[2].padStart(2, '0');
-    const day = isoSlashMatch[3].padStart(2, '0');
-    return `${year}-${month}-${day}`;
-  }
-
   return null;
-}
-
-export function getFieldLabel(fieldKey: keyof ParsedDemographics): string {
-  return FIELD_LABELS[fieldKey] || fieldKey;
 }

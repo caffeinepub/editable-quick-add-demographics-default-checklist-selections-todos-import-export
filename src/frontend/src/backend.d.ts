@@ -37,6 +37,8 @@ export interface ToDoItem {
 export enum Sex {
     female = "female",
     male = "male",
+    femaleSpayed = "femaleSpayed",
+    maleNeutered = "maleNeutered",
     unknown_ = "unknown"
 }
 export enum Species {

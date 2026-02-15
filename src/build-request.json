@@ -1,120 +1,112 @@
 {
   "kind": "build_request",
-  "title": "Add a notes field to surgery cases",
+  "title": "Add offline mode with local case cache and deferred sync",
   "priority": "normal",
   "requirements": [
     {
       "id": "REQ-1",
-      "text": "Extend the backend SurgeryCase model to include a free-text notes field (e.g., `notes : Text`) that stores user-entered case notes.",
-      "target": "backend",
+      "text": "Implement an offline-aware local cache of surgery cases in the browser so previously loaded case data remains available when the network or IC canister is unreachable.",
+      "target": "frontend",
       "source": {
         "messageIds": [
-          "msg-6"
+          "msg-1"
         ],
         "quotes": [
-          "add a field to write notes about the case"
+          "add offline mode"
         ]
       },
       "acceptanceCriteria": [
-        "A new `notes` field exists on the backend `SurgeryCase` record type.",
-        "Existing backend methods that return `SurgeryCase` (e.g., getCase/listCases/exportCases) include the notes field in their returned values."
+        "If the user has previously loaded the case list while online, then turning on browser offline mode (or losing connectivity) still allows viewing the case list from a locally stored cache.",
+        "If the user has previously opened a case detail page while online, then turning offline still allows viewing that case’s details and to-do list from the local cache.",
+        "If no local cache exists yet (fresh install), offline mode shows an empty-state message indicating that data must be loaded at least once while online."
       ]
     },
     {
       "id": "REQ-2",
-      "text": "Update backend case creation and update APIs to accept and persist the case notes field.",
-      "target": "backend",
+      "text": "Add a clear UI indicator for connectivity/offline state and cache/sync status in the main app navigation/layout (e.g., in TopNav), using English user-facing text.",
+      "target": "frontend",
       "source": {
         "messageIds": [
-          "msg-6"
+          "msg-1"
         ],
         "quotes": [
-          "add a field to write notes about the case"
+          "add offline mode"
         ]
       },
       "acceptanceCriteria": [
-        "`createCase` accepts a notes parameter and persists it into the stored SurgeryCase.",
-        "`updateCase` accepts a notes parameter and persists it into the stored SurgeryCase.",
-        "Calling create/update with notes and then fetching the case returns the same notes value."
+        "When the browser is offline, a visible indicator shows the app is in Offline Mode.",
+        "When the browser returns online, the indicator updates automatically without a page refresh.",
+        "The indicator messaging is concise and does not block normal navigation."
       ]
     },
     {
       "id": "REQ-3",
-      "text": "Add an upgrade-safe state migration for the new notes field so existing stored cases continue to load after the schema change, defaulting notes to an empty string when missing.",
-      "target": "backend",
+      "text": "Persist the case list and individual case query results to durable browser storage (IndexedDB preferred; localStorage acceptable if size constraints are handled) and restore them on app start so offline mode works after a reload.",
+      "target": "frontend",
       "source": {
         "messageIds": [
-          "msg-6"
+          "msg-1"
         ],
         "quotes": [
-          "add a field to write notes about the case"
+          "add offline mode"
         ]
       },
       "acceptanceCriteria": [
-        "Upgrading an existing canister with pre-notes data does not trap on post-upgrade.",
-        "All previously-stored cases have `notes` populated with a default empty string after upgrade."
+        "Reloading the app while offline still displays the most recently cached case list and any cached case details.",
+        "Cached data is stored per authenticated Internet Identity principal (do not mix cached cases between different logged-in users on the same browser).",
+        "The cache layer does not require modifications to immutable frontend paths (e.g., do not edit frontend/src/main.tsx)."
       ]
     },
     {
       "id": "REQ-4",
-      "text": "Add a multi-line \"Case Notes\" textarea field to the case-entry workflow UI (create and edit) and wire it to the backend so users can write, save, and later edit notes for a case.",
+      "text": "Add offline-safe behavior for write actions (create/update/delete cases and to-do mutations): when offline or when the canister call fails due to network, queue the operation locally and apply an optimistic UI update; when connectivity returns, automatically replay the queued operations to the canister and reconcile the UI.",
       "target": "frontend",
       "source": {
         "messageIds": [
-          "msg-6"
+          "msg-1"
         ],
         "quotes": [
-          "add a field to write notes about the case"
+          "add offline mode"
         ]
       },
       "acceptanceCriteria": [
-        "The New Case form includes a textarea labeled \"Case Notes\".",
-        "The Case Details (edit) form includes the same textarea pre-filled with existing notes.",
-        "Submitting the form saves notes; re-opening the case shows the saved notes."
+        "While offline, the user can create/update/delete a case or change to-dos and see the UI reflect the change immediately (optimistic update).",
+        "Queued operations persist across reloads and are replayed once the app is back online and the actor is available.",
+        "If a queued operation fails during replay, the user is notified with an English error message and the operation remains pending until the user retries or removes it.",
+        "After successful replay, pending status is cleared and the React Query cache is refreshed from the canister."
       ]
     },
     {
       "id": "REQ-5",
-      "text": "Update frontend data flow/types to include the notes field end-to-end (React Query mutations/queries, form data shape, and any import/export parsing that relies on the SurgeryCase schema).",
+      "text": "Provide basic controls for offline data management: a manual “Sync now” action and a way to view/clear pending offline changes, with safeguards to prevent accidental data loss.",
       "target": "frontend",
       "source": {
         "messageIds": [
-          "msg-6"
+          "msg-1"
         ],
         "quotes": [
-          "add a field to write notes about the case"
+          "add offline mode"
         ]
       },
       "acceptanceCriteria": [
-        "Frontend `CaseFormData` includes a notes string field.",
-        "`useCreateCase` and `useUpdateCase` send notes to the backend.",
-        "JSON import/export continues to work with notes present in exported cases and accepted on import.",
-        "CSV import continues to work; if a notes column is provided, it is imported; if omitted, notes defaults to an empty string."
+        "A user can trigger a manual sync attempt when online.",
+        "A user can view how many pending offline changes exist.",
+        "A user can clear pending offline changes only after confirming (confirmation UI required) and is warned that clearing will discard unsynced changes."
       ]
     }
   ],
   "constraints": [
-    "Backend must remain a single Motoko actor in `backend/main.mo`.",
-    "Do not edit any files under `frontend/src/components/ui` or any paths listed in `frontend.immutablePaths`.",
-    "All user-facing text must be in English."
+    "Do not edit files under frontend/src/components/ui (read-only UI component sources).",
+    "Do not edit immutable frontend paths: frontend/src/hooks/useInternetIdentity.ts, frontend/src/hooks/useInternetIdentity.tsx, frontend/src/hooks/useActor.ts, frontend/src/main.tsx, frontend/src/components/ui.",
+    "Keep the backend as a single Motoko actor (no new backend services, no external databases)."
   ],
   "nonGoals": [
-    "Do not implement rich-text formatting for notes (plain text only).",
-    "Do not add real-time collaborative editing for notes.",
-    "Do not add new authentication providers beyond Internet Identity."
+    "Implementing multi-device conflict resolution beyond a simple last-write-wins approach during sync reconciliation.",
+    "Adding real-time collaboration or live updates between multiple users/devices.",
+    "Changing the backend data model/schema unless it becomes strictly necessary for offline sync (prefer frontend-only changes)."
   ],
   "imageRequirements": {
     "required": [],
     "edits": []
-  },
-  "userProfileUpdate": {
-    "goalsToAdd": [],
-    "goalsToRemove": [],
-    "preferencesToAdd": [],
-    "preferencesToRemove": [],
-    "miscToAdd": [],
-    "miscToRemove": [],
-    "fieldsToSet": {},
-    "fieldsToDelete": []
   }
 }

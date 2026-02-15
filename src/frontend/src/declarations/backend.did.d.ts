@@ -12,6 +12,8 @@ import type { Principal } from '@icp-sdk/core/principal';
 
 export type Sex = { 'female' : null } |
   { 'male' : null } |
+  { 'femaleSpayed' : null } |
+  { 'maleNeutered' : null } |
   { 'unknown' : null };
 export type Species = { 'other' : null } |
   { 'feline' : null } |

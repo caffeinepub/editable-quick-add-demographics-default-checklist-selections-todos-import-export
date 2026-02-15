@@ -2,18 +2,27 @@ import { useInternetIdentity } from '../../hooks/useInternetIdentity';
 import { useQueryClient } from '@tanstack/react-query';
 import { Button } from '@/components/ui/button';
 import { LogIn, LogOut } from 'lucide-react';
+import { clearAllCache } from '../../utils/offlineDb';
+import { clearAllOperations } from '../../utils/offlineQueue';
 
 export default function LoginButton() {
   const { login, clear, loginStatus, identity } = useInternetIdentity();
   const queryClient = useQueryClient();
 
   const isAuthenticated = !!identity;
-  const isLoggingIn = loginStatus === 'logging-in';
+  const disabled = loginStatus === 'logging-in';
+  const text = loginStatus === 'logging-in' ? 'Logging in...' : isAuthenticated ? 'Logout' : 'Login';
 
   const handleAuth = async () => {
     if (isAuthenticated) {
+      const principal = identity.getPrincipal().toString();
       await clear();
       queryClient.clear();
+      // Clear offline cache and queue
+      await clearAllCache();
+      if (principal) {
+        await clearAllOperations(principal);
+      }
     } else {
       try {
         await login();
@@ -30,21 +39,19 @@ export default function LoginButton() {
   return (
     <Button
       onClick={handleAuth}
-      disabled={isLoggingIn}
+      disabled={disabled}
       variant={isAuthenticated ? 'outline' : 'default'}
       size="sm"
     >
-      {isLoggingIn ? (
-        'Logging in...'
-      ) : isAuthenticated ? (
+      {isAuthenticated ? (
         <>
           <LogOut className="mr-2 h-4 w-4" />
-          Logout
+          {text}
         </>
       ) : (
         <>
           <LogIn className="mr-2 h-4 w-4" />
-          Login
+          {text}
         </>
       )}
     </Button>

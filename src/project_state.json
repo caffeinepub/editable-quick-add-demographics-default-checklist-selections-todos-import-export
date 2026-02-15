@@ -1,22 +1,50 @@
 {
   "schemaVersion": "1.0.0",
   "projectStateVersion": 3,
-  "summary": "Project includes a case-entry workflow; next planned enhancement is adding a notes field for cases.",
-  "architectural_notes": [],
-  "known_issues": [],
+  "summary": "App stores case data in an Internet Computer backend canister; user wants an offline mode (local storage copy) added.",
+  "architectural_notes": [
+    "Case data is stored in the backend canister on the Internet Computer (not on device / traditional cloud DB)."
+  ],
+  "known_issues": [
+    "CSV import may report many rows imported but only show fewer cases if multiple rows share the same/blank case ID (records overwrite due to map keyed by case.id)."
+  ],
   "isFixRequest": false,
   "existing_features": [
     {
-      "id": "feature-add-a-multi-line-case-notes-textarea-field-to-the-case-entry-workflow-ui-create-and-edit-and-wire-it-to-the-backend-so-users-can-write-save-and-later-edit-notes-for-a-case",
-      "title": "Add a multi-line \"Case Notes\" textarea field to the case-entry workflow UI (create and edit) and wire it to the backend so users can write, save, and later edit notes for a case.",
+      "id": "feature-implement-an-offline-aware-local-cache-of-surgery-cases-in-the-browser-so-previously-loaded-case-data-remains-available-when-the-network-or-ic-canister-is-unreachable",
+      "title": "Implement an offline-aware local cache of surgery cases in the browser so previously loaded case data remains available when the network or IC canister is unreachable.",
+      "reqIds": [
+        "REQ-1"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-add-a-clear-ui-indicator-for-connectivity-offline-state-and-cache-sync-status-in-the-main-app-navigation-layout-e-g-in-topnav-using-english-user-facing-text",
+      "title": "Add a clear UI indicator for connectivity/offline state and cache/sync status in the main app navigation/layout (e.g., in TopNav), using English user-facing text.",
+      "reqIds": [
+        "REQ-2"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-persist-the-case-list-and-individual-case-query-results-to-durable-browser-storage-indexeddb-preferred-localstorage-acceptable-if-size-constraints-are-handled-and-restore-them-on-app-start-so-offline-mode-works-after-a-reload",
+      "title": "Persist the case list and individual case query results to durable browser storage (IndexedDB preferred; localStorage acceptable if size constraints are handled) and restore them on app start so offline mode works after a reload.",
+      "reqIds": [
+        "REQ-3"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-add-offline-safe-behavior-for-write-actions-create-update-delete-cases-and-to-do-mutations-when-offline-or-when-the-canister-call-fails-due-to-network-queue-the-operation-locally-and-apply-an-optimistic-ui-update-when-connectivity-returns-automatically-replay-the-queued-operations-to-the-canister-and-reconcile-the-ui",
+      "title": "Add offline-safe behavior for write actions (create/update/delete cases and to-do mutations): when offline or when the canister call fails due to network, queue the operation locally and apply an optimistic UI update; when connectivity returns, automatically replay the queued operations to the canister and reconcile the UI.",
       "reqIds": [
         "REQ-4"
       ],
       "version": 1
     },
     {
-      "id": "feature-update-frontend-data-flow-types-to-include-the-notes-field-end-to-end-react-query-mutations-queries-form-data-shape-and-any-import-export-parsing-that-relies-on-the-surgerycase-schema",
-      "title": "Update frontend data flow/types to include the notes field end-to-end (React Query mutations/queries, form data shape, and any import/export parsing that relies on the SurgeryCase schema).",
+      "id": "feature-provide-basic-controls-for-offline-data-management-a-manual-sync-now-action-and-a-way-to-view-clear-pending-offline-changes-with-safeguards-to-prevent-accidental-data-loss",
+      "title": "Provide basic controls for offline data management: a manual “Sync now” action and a way to view/clear pending offline changes, with safeguards to prevent accidental data loss.",
       "reqIds": [
         "REQ-5"
       ],
@@ -26,36 +54,12 @@
   "new_feature_requests": [
     {
       "id": "AR-1",
-      "summary": "Add a notes field to the case-entry workflow so users can write notes about the case",
+      "summary": "Add offline mode (store a local copy of case data in the browser, e.g., IndexedDB/localStorage, for offline access/backup)",
       "reqIds": [],
-      "status": "pending"
-    },
-    {
-      "id": "AR-2",
-      "summary": "Extend the backend SurgeryCase model to include a free-text notes field (e.g., `notes : Text`) that stores user-entered case notes.",
-      "reqIds": [
-        "REQ-1"
-      ],
-      "status": "pending"
-    },
-    {
-      "id": "AR-3",
-      "summary": "Update backend case creation and update APIs to accept and persist the case notes field.",
-      "reqIds": [
-        "REQ-2"
-      ],
-      "status": "pending"
-    },
-    {
-      "id": "AR-4",
-      "summary": "Add an upgrade-safe state migration for the new notes field so existing stored cases continue to load after the schema change, defaulting notes to an empty string when missing.",
-      "reqIds": [
-        "REQ-3"
-      ],
       "status": "pending"
     }
   ],
-  "projectName": "Add a notes field to surgery cases",
+  "projectName": "Add offline mode with local case cache and deferred sync",
   "clarification_mode": "instant",
   "clarification_rounds": 0
 }
