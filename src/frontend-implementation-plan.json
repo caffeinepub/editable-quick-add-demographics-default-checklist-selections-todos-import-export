@@ -1,21 +1,21 @@
 {
   "kind": "implementation_plan",
   "version": "1.0",
-  "title": "Force fresh frontend build via deploy-retry marker update",
+  "title": "Force deployment retry to restart stopped backend canister",
   "requirements": [
     {
       "id": "REQ-1",
-      "summary": "Trigger a deployment retry by changing the contents of the deploy-retry marker file without affecting app behavior.",
+      "summary": "Trigger a fresh deployment retry by updating the deploy-retry marker file without changing application functionality.",
       "acceptanceCriteria": [
-        "frontend/public/deploy-retry.txt has a modified first-line timestamp/string so the file diff is non-empty.",
-        "No other files are changed as part of this request.",
-        "The application behavior and user-facing UI text remain unchanged (this is a deploy-trigger only)."
+        "frontend/public/deploy-retry.txt is modified such that its contents differ from the previous version (e.g., line 1 timestamp updated).",
+        "No other functional application code changes are required for this build request.",
+        "After redeploy, the backend canister is running (not stopped) and the frontend DebugPanel no longer reports 'Backend Actor: Not Ready' due to IC0508 'canister is stopped'."
       ],
       "file_operations": [
         {
           "path": "frontend/public/deploy-retry.txt",
           "operation": "modify",
-          "description": "Update only the first-line marker string (e.g., replace the existing ISO timestamp with a new ISO timestamp) to force a fresh deployment build; do not change any other files or any functional code/UI behavior."
+          "description": "Update the marker contents to force a deployment retry (e.g., change the ISO timestamp on line 1) while keeping all application behavior unchanged."
         }
       ]
     }

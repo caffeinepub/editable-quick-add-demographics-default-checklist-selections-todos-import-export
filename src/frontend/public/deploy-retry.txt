@@ -1,3 +1,3 @@
 2026-02-16T00:00:00.000Z
-Deployment retry marker - updated to force fresh build
-This file is modified to trigger redeployment without changing application functionality
+Deployment retry marker - updated to force canister restart
+Build trigger: backend canister stopped (IC0508)

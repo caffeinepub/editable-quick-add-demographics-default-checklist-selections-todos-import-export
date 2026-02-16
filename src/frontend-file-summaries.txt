@@ -37,5 +37,5 @@
   "frontend/public/assets/project-files-manifest.json": "Static JSON manifest containing the list of project file paths, generated at build time and bundled with the frontend for runtime consumption.",
   "frontend/src/hooks/useProjectFilesManifest.ts": "React Query hook that fetches and validates the static project files manifest from the bundled asset, with proper error handling and infinite stale time since the manifest is static per build.",
   "frontend/src/components/debug/ProjectFilesSection.tsx": "Debug Panel section component that displays a filterable, scrollable list of project files loaded from the build-time manifest, with copy-to-clipboard functionality and graceful error states.",
-  "frontend/public/deploy-retry.txt": "Deployment marker file containing a timestamp to trigger a fresh build without modifying application functionality."
+  "frontend/public/deploy-retry.txt": "Deployment marker file containing a timestamp to trigger a fresh build without modifying application functionality, updated to restart the stopped backend canister."
 }

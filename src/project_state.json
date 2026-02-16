@@ -2,15 +2,18 @@
   "schemaVersion": "1.0.0",
   "projectStateVersion": 3,
   "summary": "New project",
-  "architectural_notes": [],
+  "architectural_notes": [
+    "Backend runs on an Internet Computer canister; if the canister is stopped, requests are rejected (IC0508) and role provisioning/API calls fail until redeployed/restarted."
+  ],
   "known_issues": [
-    "Backend canister may be stopped causing Backend Actor: Not Ready, role provisioning stuck, and project files failing to load (Unexpected token '<' ... not valid JSON); requires retry deployment/reset to restart canister."
+    "Backend canister (xwevn-xyaaa-aaaai-at4jq-cai) is stopped, causing IC0508 reject code 5 errors and blocking role provisioning; DebugPanel shows Backend Actor: Not Ready.",
+    "Project files fail to load due to backend outage; client sees JSON parse error: Unexpected token '<' (HTML returned instead of JSON)."
   ],
   "isFixRequest": true,
   "existing_features": [
     {
-      "id": "feature-trigger-a-deployment-retry-by-updating-the-marker-file-at-frontend-public-deploy-retry-txt-so-its-contents-change-e-g-update-the-iso-timestamp-on-the-first-line-without-changing-application-functionality",
-      "title": "Trigger a deployment retry by updating the marker file at frontend/public/deploy-retry.txt so its contents change (e.g., update the ISO timestamp on the first line) without changing application functionality.",
+      "id": "feature-trigger-a-fresh-deployment-to-restart-backend-canister-xwevn-xyaaa-aaaai-at4jq-cai-by-updating-the-contents-of-the-deployment-retry-marker-file-at-frontend-public-deploy-retry-txt-e-g-change-the-iso-timestamp-on-line-1-without-changing-application-functionality",
+      "title": "Trigger a fresh deployment (to restart backend canister xwevn-xyaaa-aaaai-at4jq-cai) by updating the contents of the deployment retry marker file at frontend/public/deploy-retry.txt (e.g., change the ISO timestamp on line 1) without changing application functionality.",
       "reqIds": [
         "REQ-1"
       ],
@@ -18,7 +21,7 @@
     }
   ],
   "new_feature_requests": [],
-  "projectName": "Retry deployment by forcing a fresh build",
+  "projectName": "Restart stopped backend by forcing a deployment retry",
   "clarification_mode": "instant",
   "clarification_rounds": 0
 }

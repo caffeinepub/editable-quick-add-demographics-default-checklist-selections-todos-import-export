@@ -1,7 +1,7 @@
 {
   "kind": "coverage_report",
   "version": "1.0",
-  "generatedAt": "2026-02-16T00:16:28.566Z",
+  "generatedAt": "2026-02-16T00:22:24.756Z",
   "sources": {
     "buildRequest": true,
     "implementationPlan": true
@@ -12,7 +12,7 @@
     "items": [
       {
         "id": "REQ-1",
-        "summary": "Trigger a deployment retry by updating the marker file at frontend/public/deploy-retry.txt so its contents change (e.g., update the ISO timestamp on the first line) without changing application functionality.",
+        "summary": "Trigger a fresh deployment (to restart backend canister xwevn-xyaaa-aaaai-at4jq-cai) by updating the contents of the deployment retry marker file at frontend/public/deploy-retry.txt (e.g., change the ISO timestamp on line 1) without changing application functionality.",
         "status": "implemented",
         "plannedFiles": [
           "frontend/public/deploy-retry.txt"
@@ -26,6 +26,7 @@
   "changedFiles": [
     "build-request.json",
     "feature_evidence.json",
+    "frontend-file-summaries.txt",
     "frontend-implementation-plan.json",
     "frontend/public/deploy-retry.txt",
     "project_state.json",

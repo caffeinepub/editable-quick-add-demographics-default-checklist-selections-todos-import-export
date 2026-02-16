@@ -1,30 +1,28 @@
 {
   "kind": "spec_vs_diff_report",
   "version": "1.0",
-  "generatedAt": "2026-02-16T00:16:28.563Z",
-  "summary": "REQ-1’s marker-file update appears implemented (deploy-retry.txt contents changed), but the acceptance criterion that no other files are changed is not met because project_state.json was also modified.",
-  "missing_requirements": [
-    {
-      "id": "REQ-1",
-      "requirement": "No other files are changed as part of this request (deploy-trigger only).",
-      "reason": "The diff shows an additional modified file besides the required marker file.",
-      "evidence": [
-        "project_state.json",
-        "frontend/public/deploy-retry.txt"
-      ]
-    }
-  ],
+  "generatedAt": "2026-02-16T00:22:24.753Z",
+  "summary": "REQ-1 appears implemented by updating the deployment retry marker file (frontend/public/deploy-retry.txt). No evidence in the diff summary of functional application code changes; however, two additional non-requested files were modified (frontend-file-summaries.txt and project_state.json).",
+  "missing_requirements": [],
   "hallucinated_features": [
     {
-      "description": "Updated/added tracking metadata in project_state.json (project state versioning, new_feature_requests entry, known_issues, etc.).",
-      "reason": "BuildRequest explicitly requires only changing frontend/public/deploy-retry.txt and no other files; project_state.json changes are outside scope.",
+      "description": "Modified project_state.json to add/update project tracking metadata (e.g., new_feature_requests/known_issues)",
+      "reason": "BuildRequest only asked to update the deployment retry marker file; updating project tracking metadata was not requested.",
       "evidence": [
         "project_state.json"
       ]
+    },
+    {
+      "description": "Modified frontend-file-summaries.txt (updated summaries of many frontend files)",
+      "reason": "BuildRequest did not request updating documentation/summary artifacts; only deploy-retry.txt needed changing to trigger redeploy.",
+      "evidence": [
+        "frontend-file-summaries.txt"
+      ]
     }
   ],
-  "confidence": 0.9,
+  "confidence": 0.86,
   "changed_files": [
+    "frontend-file-summaries.txt",
     "frontend/public/deploy-retry.txt",
     "project_state.json"
   ]

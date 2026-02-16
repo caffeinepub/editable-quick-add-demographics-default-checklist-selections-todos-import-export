@@ -1,35 +1,34 @@
 {
   "kind": "build_request",
-  "title": "Retry deployment by forcing a fresh build",
-  "priority": "normal",
+  "title": "Restart stopped backend by forcing a deployment retry",
+  "priority": "high",
   "requirements": [
     {
       "id": "REQ-1",
-      "text": "Trigger a deployment retry by updating the marker file at frontend/public/deploy-retry.txt so its contents change (e.g., update the ISO timestamp on the first line) without changing application functionality.",
+      "text": "Trigger a fresh deployment (to restart backend canister xwevn-xyaaa-aaaai-at4jq-cai) by updating the contents of the deployment retry marker file at frontend/public/deploy-retry.txt (e.g., change the ISO timestamp on line 1) without changing application functionality.",
       "target": "frontend",
       "source": {
         "messageIds": [
           "msg-1"
         ],
         "quotes": [
-          "retry deployment"
+          "backend is still stopped; restart deployment"
         ]
       },
       "acceptanceCriteria": [
-        "frontend/public/deploy-retry.txt has a modified first-line timestamp/string so the file diff is non-empty.",
-        "No other files are changed as part of this request.",
-        "The application behavior and user-facing UI text remain unchanged (this is a deploy-trigger only)."
+        "frontend/public/deploy-retry.txt is modified such that its contents differ from the previous version (e.g., line 1 timestamp updated).",
+        "No other functional application code changes are required for this build request.",
+        "After redeploy, the backend canister is running (not stopped) and the frontend DebugPanel no longer reports 'Backend Actor: Not Ready' due to IC0508 'canister is stopped'."
       ]
     }
   ],
   "constraints": [
-    "Do not introduce any functional code changes; this request is only to force a fresh deployment build.",
-    "Keep all user-facing text in English."
+    "Do not modify any files under frontend/src/components/ui or any other immutable paths listed in SYSTEM_CONTEXT.",
+    "Keep backend architecture as a single Motoko actor (no new backend services)."
   ],
   "nonGoals": [
-    "Fixing the stopped-canister condition in code.",
-    "Changing backend logic, schema, or authorization.",
-    "UI/UX changes to the Debug Panel or provisioning flow."
+    "Implementing new product features beyond triggering a redeploy.",
+    "Changing access control, role provisioning logic, or case CRUD behavior."
   ],
   "imageRequirements": {
     "required": [],

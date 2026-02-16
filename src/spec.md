@@ -1,9 +1,9 @@
 # Specification
 
 ## Summary
-**Goal:** Force a fresh deployment build by making a non-functional change that triggers a redeploy.
+**Goal:** Trigger a fresh deployment retry to restart the stopped backend canister without changing application functionality.
 
 **Planned changes:**
-- Update the first-line timestamp/string in `frontend/public/deploy-retry.txt` so the file content changes.
+- Update `frontend/public/deploy-retry.txt` contents (e.g., change the ISO timestamp on line 1) to force a deployment retry.
 
-**User-visible outcome:** No user-visible changes; application behavior and UI remain unchanged while a deployment retry is triggered.
+**User-visible outcome:** After redeploy, the backend canister is running again and the frontend DebugPanel no longer reports “Backend Actor: Not Ready” due to IC0508 “canister is stopped”.
