@@ -59,5 +59,6 @@ export function getStoppedCanisterExplanation(info: StoppedCanisterInfo): string
  * Generates a suggested action for a stopped canister error.
  */
 export function getStoppedCanisterAction(): string {
-  return 'Retry deployment to restart the canister.';
+  return 'Retry deployment to restart the canister, or reset the draft environment for a clean start.';
 }
+

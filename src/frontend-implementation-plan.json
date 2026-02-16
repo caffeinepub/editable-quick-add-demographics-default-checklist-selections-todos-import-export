@@ -1,44 +1,21 @@
 {
   "kind": "implementation_plan",
   "version": "1.0",
-  "title": "Improve DebugPanel actor error lookup and case count tracing",
+  "title": "Force fresh frontend build via deploy-retry marker update",
   "requirements": [
     {
       "id": "REQ-1",
-      "summary": "Fix DebugPanel to read the cached backend actor error from the exact React Query key used by useActor for both authenticated and anonymous users.",
+      "summary": "Trigger a deployment retry by changing the contents of the deploy-retry marker file without affecting app behavior.",
       "acceptanceCriteria": [
-        "When logged out, DebugPanel does not look up actor query state using the literal string \"Not logged in\" as part of the key.",
-        "When logged in, DebugPanel reads the actor query state using the same query key structure as useActor (i.e., based on the actual principal string), and displays any cached actor initialization error if present.",
-        "No changes are made to immutable hook files (e.g., frontend/src/hooks/useActor.ts)."
+        "frontend/public/deploy-retry.txt has a modified first-line timestamp/string so the file diff is non-empty.",
+        "No other files are changed as part of this request.",
+        "The application behavior and user-facing UI text remain unchanged (this is a deploy-trigger only)."
       ],
       "file_operations": [
         {
-          "path": "frontend/src/components/debug/DebugPanel.tsx",
+          "path": "frontend/public/deploy-retry.txt",
           "operation": "modify",
-          "description": "Update the actor React Query key lookup to match useActor’s queryKey structure (['actor', identity?.getPrincipal().toString()]) instead of using the UI fallback string. Keep the displayed principal text as-is for the UI, but ensure the query key uses the real principal string or undefined when logged out so cached actor initialization errors remain visible."
-        }
-      ]
-    },
-    {
-      "id": "REQ-2",
-      "summary": "Add explicit case-count tracing in DebugPanel by querying actor.getCaseCount() separately and displaying it alongside the existing listCases-derived count, with independent error states and a refresh that refetches both.",
-      "acceptanceCriteria": [
-        "A new React Query hook (or equivalent query) is added (in a non-immutable file) that calls actor.getCaseCount() and returns a numeric count.",
-        "DebugPanel shows both: (1) the list-based count derived from actor.listCases() (current behavior) and (2) the direct count from actor.getCaseCount().",
-        "Each displayed count indicates its source call (\"listCases\" vs \"getCaseCount\") in the UI using English user-facing text.",
-        "The refresh control in DebugPanel refreshes the relevant case-count queries and shows a success/error toast in English depending on the result.",
-        "If either call fails, DebugPanel shows an error indicator for that specific count while leaving the other count unaffected if it succeeds."
-      ],
-      "file_operations": [
-        {
-          "path": "frontend/src/hooks/useQueries.ts",
-          "operation": "modify",
-          "description": "Add a new React Query hook (e.g., useGetCaseCount) that calls actor.getCaseCount(), converts the returned bigint to a number for UI display, and exposes loading/error/refetch state. Keep it in this non-immutable file and gate execution similarly to other queries (requires actor readiness and an authenticated principal where applicable)."
-        },
-        {
-          "path": "frontend/src/components/debug/DebugPanel.tsx",
-          "operation": "modify",
-          "description": "Extend the Case Count section to display two separate rows/labels: one count sourced from listCases (existing useListCases length) and one sourced from getCaseCount (new hook). Add independent loading/error indicators per count. Update the refresh control to refetch both queries (listCases + getCaseCount) and show an English success toast only when the relevant refetches succeed; otherwise show an English error toast that indicates refresh failure while preserving any successfully refreshed value."
+          "description": "Update only the first-line marker string (e.g., replace the existing ISO timestamp with a new ISO timestamp) to force a fresh deployment build; do not change any other files or any functional code/UI behavior."
         }
       ]
     }

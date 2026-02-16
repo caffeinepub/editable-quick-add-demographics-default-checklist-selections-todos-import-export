@@ -3,28 +3,22 @@
   "projectStateVersion": 3,
   "summary": "New project",
   "architectural_notes": [],
-  "known_issues": [],
-  "isFixRequest": false,
+  "known_issues": [
+    "Backend canister may be stopped causing Backend Actor: Not Ready, role provisioning stuck, and project files failing to load (Unexpected token '<' ... not valid JSON); requires retry deployment/reset to restart canister."
+  ],
+  "isFixRequest": true,
   "existing_features": [
     {
-      "id": "feature-update-the-debugpanel-so-the-cached-backend-actor-error-is-read-from-the-correct-react-query-key-used-by-useactor-even-when-the-user-is-not-logged-in",
-      "title": "Update the DebugPanel so the cached backend actor error is read from the correct React Query key used by useActor, even when the user is not logged in.",
+      "id": "feature-trigger-a-deployment-retry-by-updating-the-marker-file-at-frontend-public-deploy-retry-txt-so-its-contents-change-e-g-update-the-iso-timestamp-on-the-first-line-without-changing-application-functionality",
+      "title": "Trigger a deployment retry by updating the marker file at frontend/public/deploy-retry.txt so its contents change (e.g., update the ISO timestamp on the first line) without changing application functionality.",
       "reqIds": [
         "REQ-1"
-      ],
-      "version": 1
-    },
-    {
-      "id": "feature-add-explicit-case-count-tracing-in-the-debugpanel-by-fetching-and-displaying-the-backend-getcasecount-result-alongside-the-existing-list-based-count-so-it-is-clear-which-backend-call-is-producing-the-displayed-number",
-      "title": "Add explicit case-count tracing in the DebugPanel by fetching and displaying the backend getCaseCount() result alongside the existing list-based count, so it is clear which backend call is producing the displayed number.",
-      "reqIds": [
-        "REQ-2"
       ],
       "version": 1
     }
   ],
   "new_feature_requests": [],
-  "projectName": "Improve DebugPanel case count tracing and actor error visibility",
+  "projectName": "Retry deployment by forcing a fresh build",
   "clarification_mode": "instant",
   "clarification_rounds": 0
 }

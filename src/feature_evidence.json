@@ -2,10 +2,10 @@
   "kind": "feature_evidence_report",
   "features": [
     {
-      "featureId": "feature-update-the-debugpanel-so-the-cached-backend-actor-error-is-read-from-the-correct-react-query-key-used-by-useactor-even-when-the-user-is-not-logged-in",
-      "featureTitle": "Update the DebugPanel so the cached backend actor error is read from the correct React Query key used by useActor, even when the user is not logged in.",
+      "featureId": "feature-trigger-a-deployment-retry-by-updating-the-marker-file-at-frontend-public-deploy-retry-txt-so-its-contents-change-e-g-update-the-iso-timestamp-on-the-first-line-without-changing-application-functionality",
+      "featureTitle": "Trigger a deployment retry by updating the marker file at frontend/public/deploy-retry.txt so its contents change (e.g., update the ISO timestamp on the first line) without changing application functionality.",
       "files": [
-        "frontend/src/components/debug/DebugPanel.tsx"
+        "frontend/public/deploy-retry.txt"
       ],
       "components": [
         "authorization@4.0.0",
@@ -18,27 +18,6 @@
       ],
       "testIds": [
         "REQ-1"
-      ],
-      "confidence": "high"
-    },
-    {
-      "featureId": "feature-add-explicit-case-count-tracing-in-the-debugpanel-by-fetching-and-displaying-the-backend-getcasecount-result-alongside-the-existing-list-based-count-so-it-is-clear-which-backend-call-is-producing-the-displayed-number",
-      "featureTitle": "Add explicit case-count tracing in the DebugPanel by fetching and displaying the backend getCaseCount() result alongside the existing list-based count, so it is clear which backend call is producing the displayed number.",
-      "files": [
-        "frontend/src/components/debug/DebugPanel.tsx",
-        "frontend/src/hooks/useQueries.ts"
-      ],
-      "components": [
-        "authorization@4.0.0",
-        "core-infrastructure@1.0.2",
-        "shadcn-ui@1.0.0",
-        "build-template-react@1.0.0",
-        "initial-app@1.0.0",
-        "github-export-icp-cli@1.0.0",
-        "camera@1.0.0"
-      ],
-      "testIds": [
-        "REQ-2"
       ],
       "confidence": "high"
     }

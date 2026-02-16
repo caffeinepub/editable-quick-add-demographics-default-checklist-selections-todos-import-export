@@ -1,37 +1,24 @@
 {
   "kind": "coverage_report",
   "version": "1.0",
-  "generatedAt": "2026-02-15T23:59:29.575Z",
+  "generatedAt": "2026-02-16T00:16:28.566Z",
   "sources": {
     "buildRequest": true,
     "implementationPlan": true
   },
   "requirements": {
-    "total": 2,
-    "implemented": 2,
+    "total": 1,
+    "implemented": 1,
     "items": [
       {
         "id": "REQ-1",
-        "summary": "Update the DebugPanel so the cached backend actor error is read from the correct React Query key used by useActor, even when the user is not logged in.",
+        "summary": "Trigger a deployment retry by updating the marker file at frontend/public/deploy-retry.txt so its contents change (e.g., update the ISO timestamp on the first line) without changing application functionality.",
         "status": "implemented",
         "plannedFiles": [
-          "frontend/src/components/debug/DebugPanel.tsx"
+          "frontend/public/deploy-retry.txt"
         ],
         "matchedFiles": [
-          "frontend/src/components/debug/DebugPanel.tsx"
-        ]
-      },
-      {
-        "id": "REQ-2",
-        "summary": "Add explicit case-count tracing in the DebugPanel by fetching and displaying the backend getCaseCount() result alongside the existing list-based count, so it is clear which backend call is producing the displayed number.",
-        "status": "implemented",
-        "plannedFiles": [
-          "frontend/src/hooks/useQueries.ts",
-          "frontend/src/components/debug/DebugPanel.tsx"
-        ],
-        "matchedFiles": [
-          "frontend/src/hooks/useQueries.ts",
-          "frontend/src/components/debug/DebugPanel.tsx"
+          "frontend/public/deploy-retry.txt"
         ]
       }
     ]
@@ -39,10 +26,8 @@
   "changedFiles": [
     "build-request.json",
     "feature_evidence.json",
-    "frontend-file-summaries.txt",
     "frontend-implementation-plan.json",
-    "frontend/src/components/debug/DebugPanel.tsx",
-    "frontend/src/hooks/useQueries.ts",
+    "frontend/public/deploy-retry.txt",
     "project_state.json",
     "scratch/component-selection.json",
     "spec.md",

@@ -1,73 +1,38 @@
 {
   "kind": "build_request",
-  "title": "Improve DebugPanel case count tracing and actor error visibility",
+  "title": "Retry deployment by forcing a fresh build",
   "priority": "normal",
   "requirements": [
     {
       "id": "REQ-1",
-      "text": "Update the DebugPanel so the cached backend actor error is read from the correct React Query key used by useActor, even when the user is not logged in.",
+      "text": "Trigger a deployment retry by updating the marker file at frontend/public/deploy-retry.txt so its contents change (e.g., update the ISO timestamp on the first line) without changing application functionality.",
       "target": "frontend",
       "source": {
         "messageIds": [
-          "recent-msg-3",
-          "recent-msg-4"
+          "msg-1"
         ],
         "quotes": [
-          "Everything looks good on this build — want me to open the DebugPanel component next so we can trace the case count call?",
-          "yes"
+          "retry deployment"
         ]
       },
       "acceptanceCriteria": [
-        "When logged out, DebugPanel does not look up actor query state using the literal string \"Not logged in\" as part of the key.",
-        "When logged in, DebugPanel reads the actor query state using the same query key structure as useActor (i.e., based on the actual principal string), and displays any cached actor initialization error if present.",
-        "No changes are made to immutable hook files (e.g., frontend/src/hooks/useActor.ts)."
-      ]
-    },
-    {
-      "id": "REQ-2",
-      "text": "Add explicit case-count tracing in the DebugPanel by fetching and displaying the backend getCaseCount() result alongside the existing list-based count, so it is clear which backend call is producing the displayed number.",
-      "target": "frontend",
-      "source": {
-        "messageIds": [
-          "recent-msg-3",
-          "recent-msg-4"
-        ],
-        "quotes": [
-          "Everything looks good on this build — want me to open the DebugPanel component next so we can trace the case count call?",
-          "yes"
-        ]
-      },
-      "acceptanceCriteria": [
-        "A new React Query hook (or equivalent query) is added (in a non-immutable file) that calls actor.getCaseCount() and returns a numeric count.",
-        "DebugPanel shows both: (1) the list-based count derived from actor.listCases() (current behavior) and (2) the direct count from actor.getCaseCount().",
-        "Each displayed count indicates its source call (\"listCases\" vs \"getCaseCount\") in the UI using English user-facing text.",
-        "The refresh control in DebugPanel refreshes the relevant case-count queries and shows a success/error toast in English depending on the result.",
-        "If either call fails, DebugPanel shows an error indicator for that specific count while leaving the other count unaffected if it succeeds."
+        "frontend/public/deploy-retry.txt has a modified first-line timestamp/string so the file diff is non-empty.",
+        "No other files are changed as part of this request.",
+        "The application behavior and user-facing UI text remain unchanged (this is a deploy-trigger only)."
       ]
     }
   ],
   "constraints": [
-    "Backend must remain a single Motoko actor in backend/main.mo.",
-    "Do not edit files under frontend/src/hooks/useInternetIdentity.ts, frontend/src/hooks/useActor.ts, frontend/src/main.tsx, or any files in frontend/src/components/ui (immutable paths).",
-    "Use English for all user-facing UI text."
+    "Do not introduce any functional code changes; this request is only to force a fresh deployment build.",
+    "Keep all user-facing text in English."
   ],
   "nonGoals": [
-    "Changing backend access control rules or role provisioning behavior.",
-    "Refactoring the general cases list/page functionality beyond what is required for DebugPanel tracing.",
-    "Adding new authentication providers or any third-party integrations."
+    "Fixing the stopped-canister condition in code.",
+    "Changing backend logic, schema, or authorization.",
+    "UI/UX changes to the Debug Panel or provisioning flow."
   ],
   "imageRequirements": {
     "required": [],
     "edits": []
-  },
-  "userProfileUpdate": {
-    "goalsToAdd": [],
-    "goalsToRemove": [],
-    "preferencesToAdd": [],
-    "preferencesToRemove": [],
-    "miscToAdd": [],
-    "miscToRemove": [],
-    "fieldsToSet": {},
-    "fieldsToDelete": []
   }
 }
