@@ -7,6 +7,7 @@ export interface None {
     __kind__: "None";
 }
 export type Option<T> = Some<T> | None;
+export type Time = bigint;
 export interface SurgeryCase {
     id: bigint;
     mrn: string;
@@ -28,11 +29,13 @@ export interface SurgeryCase {
     species: Species;
     cultureComplete: boolean;
 }
-export type Time = bigint;
 export interface ToDoItem {
     id: bigint;
     description: string;
     complete: boolean;
+}
+export interface UserProfile {
+    name: string;
 }
 export enum Sex {
     female = "female",
@@ -55,15 +58,22 @@ export interface backendInterface {
     addTodoItem(caseId: bigint, description: string): Promise<bigint>;
     assignCallerUserRole(user: Principal, role: UserRole): Promise<void>;
     createCase(mrn: string, patientFirstName: string, patientLastName: string, dateOfBirth: string, species: Species, breed: string, sex: Sex, presentingComplaint: string, arrivalDate: Time | null, dischargeNotesComplete: boolean, pdvmNotified: boolean, labsComplete: boolean, histoComplete: boolean, surgeryReportComplete: boolean, imagingComplete: boolean, cultureComplete: boolean, notes: string, todoDescriptions: Array<string>): Promise<bigint>;
+    debugGetRole(): Promise<string>;
     deleteCase(id: bigint): Promise<void>;
     deleteTodoItem(caseId: bigint, todoId: bigint): Promise<void>;
+    ensureUserRole(): Promise<void>;
     exportCases(): Promise<Array<SurgeryCase>>;
+    getCallerUserProfile(): Promise<UserProfile | null>;
     getCallerUserRole(): Promise<UserRole>;
     getCase(id: bigint): Promise<SurgeryCase | null>;
+    getCaseCount(): Promise<bigint>;
     getCasesBySpecies(species: Species): Promise<Array<SurgeryCase>>;
+    getUserProfile(user: Principal): Promise<UserProfile | null>;
+    getVersion(): Promise<string>;
     importCases(casesArray: Array<SurgeryCase>): Promise<void>;
     isCallerAdmin(): Promise<boolean>;
     listCases(): Promise<Array<SurgeryCase>>;
+    saveCallerUserProfile(profile: UserProfile): Promise<void>;
     toggleCulture(id: bigint): Promise<boolean>;
     toggleDischargeNotes(id: bigint): Promise<boolean>;
     toggleHisto(id: bigint): Promise<boolean>;

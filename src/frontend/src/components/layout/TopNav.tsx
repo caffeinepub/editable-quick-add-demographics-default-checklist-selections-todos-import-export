@@ -1,8 +1,14 @@
 import { useInternetIdentity } from '../../hooks/useInternetIdentity';
 import LoginButton from '../auth/LoginButton';
 import OfflineStatusIndicator from '../offline/OfflineStatusIndicator';
+import { Button } from '../ui/button';
+import { Bug } from 'lucide-react';
 
-export default function TopNav() {
+interface TopNavProps {
+  onDebugToggle?: () => void;
+}
+
+export default function TopNav({ onDebugToggle }: TopNavProps) {
   const { identity } = useInternetIdentity();
 
   return (
@@ -16,6 +22,17 @@ export default function TopNav() {
           </div>
           <div className="flex items-center gap-4">
             {identity && <OfflineStatusIndicator />}
+            {identity && onDebugToggle && (
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={onDebugToggle}
+                className="gap-2"
+              >
+                <Bug className="h-4 w-4" />
+                <span className="hidden sm:inline">Debug</span>
+              </Button>
+            )}
             {identity && (
               <div className="hidden sm:block text-sm text-muted-foreground">
                 {identity.getPrincipal().toString().slice(0, 8)}...

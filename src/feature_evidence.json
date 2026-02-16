@@ -2,14 +2,10 @@
   "kind": "feature_evidence_report",
   "features": [
     {
-      "featureId": "feature-implement-an-offline-aware-local-cache-of-surgery-cases-in-the-browser-so-previously-loaded-case-data-remains-available-when-the-network-or-ic-canister-is-unreachable",
-      "featureTitle": "Implement an offline-aware local cache of surgery cases in the browser so previously loaded case data remains available when the network or IC canister is unreachable.",
+      "featureId": "feature-update-the-debugpanel-so-the-cached-backend-actor-error-is-read-from-the-correct-react-query-key-used-by-useactor-even-when-the-user-is-not-logged-in",
+      "featureTitle": "Update the DebugPanel so the cached backend actor error is read from the correct React Query key used by useActor, even when the user is not logged in.",
       "files": [
-        "frontend/src/hooks/useOfflineStatus.ts",
-        "frontend/src/hooks/useQueries.ts",
-        "frontend/src/pages/CaseDetailPage.tsx",
-        "frontend/src/pages/CaseListPage.tsx",
-        "frontend/src/utils/offlineDb.ts"
+        "frontend/src/components/debug/DebugPanel.tsx"
       ],
       "components": [
         "authorization@4.0.0",
@@ -26,12 +22,11 @@
       "confidence": "high"
     },
     {
-      "featureId": "feature-add-a-clear-ui-indicator-for-connectivity-offline-state-and-cache-sync-status-in-the-main-app-navigation-layout-e-g-in-topnav-using-english-user-facing-text",
-      "featureTitle": "Add a clear UI indicator for connectivity/offline state and cache/sync status in the main app navigation/layout (e.g., in TopNav), using English user-facing text.",
+      "featureId": "feature-add-explicit-case-count-tracing-in-the-debugpanel-by-fetching-and-displaying-the-backend-getcasecount-result-alongside-the-existing-list-based-count-so-it-is-clear-which-backend-call-is-producing-the-displayed-number",
+      "featureTitle": "Add explicit case-count tracing in the DebugPanel by fetching and displaying the backend getCaseCount() result alongside the existing list-based count, so it is clear which backend call is producing the displayed number.",
       "files": [
-        "frontend/src/components/layout/AppLayout.tsx",
-        "frontend/src/components/layout/TopNav.tsx",
-        "frontend/src/components/offline/OfflineStatusIndicator.tsx"
+        "frontend/src/components/debug/DebugPanel.tsx",
+        "frontend/src/hooks/useQueries.ts"
       ],
       "components": [
         "authorization@4.0.0",
@@ -44,79 +39,6 @@
       ],
       "testIds": [
         "REQ-2"
-      ],
-      "confidence": "high"
-    },
-    {
-      "featureId": "feature-persist-the-case-list-and-individual-case-query-results-to-durable-browser-storage-indexeddb-preferred-localstorage-acceptable-if-size-constraints-are-handled-and-restore-them-on-app-start-so-offline-mode-works-after-a-reload",
-      "featureTitle": "Persist the case list and individual case query results to durable browser storage (IndexedDB preferred; localStorage acceptable if size constraints are handled) and restore them on app start so offline mode works after a reload.",
-      "files": [
-        "frontend/src/components/auth/LoginButton.tsx",
-        "frontend/src/hooks/useQueries.ts",
-        "frontend/src/utils/offlineDb.ts"
-      ],
-      "components": [
-        "authorization@4.0.0",
-        "core-infrastructure@1.0.2",
-        "shadcn-ui@1.0.0",
-        "build-template-react@1.0.0",
-        "initial-app@1.0.0",
-        "github-export-icp-cli@1.0.0",
-        "camera@1.0.0"
-      ],
-      "testIds": [
-        "REQ-3"
-      ],
-      "confidence": "high"
-    },
-    {
-      "featureId": "feature-add-offline-safe-behavior-for-write-actions-create-update-delete-cases-and-to-do-mutations-when-offline-or-when-the-canister-call-fails-due-to-network-queue-the-operation-locally-and-apply-an-optimistic-ui-update-when-connectivity-returns-automatically-replay-the-queued-operations-to-the-canister-and-reconcile-the-ui",
-      "featureTitle": "Add offline-safe behavior for write actions (create/update/delete cases and to-do mutations): when offline or when the canister call fails due to network, queue the operation locally and apply an optimistic UI update; when connectivity returns, automatically replay the queued operations to the canister and reconcile the UI.",
-      "files": [
-        "frontend/src/components/cases/ToDoSection.tsx",
-        "frontend/src/components/layout/AppLayout.tsx",
-        "frontend/src/components/offline/OfflineSyncListener.tsx",
-        "frontend/src/hooks/useOfflineSync.ts",
-        "frontend/src/hooks/useQueries.ts",
-        "frontend/src/pages/CaseDetailPage.tsx",
-        "frontend/src/pages/NewCasePage.tsx",
-        "frontend/src/types/offlineOps.ts",
-        "frontend/src/utils/offlineQueue.ts"
-      ],
-      "components": [
-        "authorization@4.0.0",
-        "core-infrastructure@1.0.2",
-        "shadcn-ui@1.0.0",
-        "build-template-react@1.0.0",
-        "initial-app@1.0.0",
-        "github-export-icp-cli@1.0.0",
-        "camera@1.0.0"
-      ],
-      "testIds": [
-        "REQ-4"
-      ],
-      "confidence": "high"
-    },
-    {
-      "featureId": "feature-provide-basic-controls-for-offline-data-management-a-manual-sync-now-action-and-a-way-to-view-clear-pending-offline-changes-with-safeguards-to-prevent-accidental-data-loss",
-      "featureTitle": "Provide basic controls for offline data management: a manual “Sync now” action and a way to view/clear pending offline changes, with safeguards to prevent accidental data loss.",
-      "files": [
-        "frontend/src/components/layout/TopNav.tsx",
-        "frontend/src/components/offline/OfflineStatusIndicator.tsx",
-        "frontend/src/components/offline/PendingChangesDialog.tsx",
-        "frontend/src/hooks/useOfflineSync.ts"
-      ],
-      "components": [
-        "authorization@4.0.0",
-        "core-infrastructure@1.0.2",
-        "shadcn-ui@1.0.0",
-        "build-template-react@1.0.0",
-        "initial-app@1.0.0",
-        "github-export-icp-cli@1.0.0",
-        "camera@1.0.0"
-      ],
-      "testIds": [
-        "REQ-5"
       ],
       "confidence": "high"
     }

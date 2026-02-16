@@ -6,7 +6,7 @@
     :root {
         --radius: 0.5rem;
         
-        /* Teal/Green clinical theme - Light mode */
+        /* Blue/Orange theme - Light mode */
         --background: 0.99 0 0;
         --foreground: 0.15 0 0;
         --card: 1 0 0;
@@ -14,33 +14,33 @@
         --popover: 1 0 0;
         --popover-foreground: 0.15 0 0;
         
-        /* Primary: Teal */
-        --primary: 0.55 0.12 180;
+        /* Primary: Blue */
+        --primary: 0.50 0.18 250;
         --primary-foreground: 0.99 0 0;
         
-        /* Secondary: Soft gray-green */
-        --secondary: 0.94 0.01 160;
+        /* Secondary: Soft gray-blue */
+        --secondary: 0.94 0.01 240;
         --secondary-foreground: 0.25 0 0;
         
-        --muted: 0.96 0.005 160;
-        --muted-foreground: 0.50 0.01 160;
+        --muted: 0.96 0.005 240;
+        --muted-foreground: 0.50 0.01 240;
         
-        /* Accent: Deeper teal */
-        --accent: 0.65 0.10 185;
+        /* Accent: Orange */
+        --accent: 0.65 0.16 40;
         --accent-foreground: 0.99 0 0;
         
         --destructive: 0.55 0.22 25;
         --destructive-foreground: 0.99 0 0;
         
-        --border: 0.90 0.01 160;
-        --input: 0.90 0.01 160;
-        --ring: 0.55 0.12 180;
+        --border: 0.90 0.01 240;
+        --input: 0.90 0.01 240;
+        --ring: 0.50 0.18 250;
         
-        --chart-1: 0.60 0.15 180;
-        --chart-2: 0.65 0.12 200;
-        --chart-3: 0.55 0.10 160;
-        --chart-4: 0.70 0.18 190;
-        --chart-5: 0.50 0.08 170;
+        --chart-1: 0.55 0.18 250;
+        --chart-2: 0.65 0.16 40;
+        --chart-3: 0.60 0.15 260;
+        --chart-4: 0.70 0.14 35;
+        --chart-5: 0.50 0.12 245;
     }
 
     .dark {
@@ -51,31 +51,32 @@
         --popover: 0.14 0 0;
         --popover-foreground: 0.98 0 0;
         
-        /* Primary: Brighter teal for dark mode */
-        --primary: 0.70 0.14 180;
+        /* Primary: Brighter blue for dark mode */
+        --primary: 0.65 0.20 250;
         --primary-foreground: 0.12 0 0;
         
-        --secondary: 0.22 0.01 160;
+        --secondary: 0.22 0.01 240;
         --secondary-foreground: 0.98 0 0;
         
-        --muted: 0.20 0.01 160;
-        --muted-foreground: 0.65 0.02 160;
+        --muted: 0.20 0.01 240;
+        --muted-foreground: 0.65 0.02 240;
         
-        --accent: 0.30 0.05 185;
-        --accent-foreground: 0.98 0 0;
+        /* Accent: Brighter orange for dark mode */
+        --accent: 0.70 0.18 40;
+        --accent-foreground: 0.12 0 0;
         
         --destructive: 0.60 0.20 25;
         --destructive-foreground: 0.98 0 0;
         
-        --border: 0.25 0.01 160;
-        --input: 0.25 0.01 160;
-        --ring: 0.70 0.14 180;
+        --border: 0.25 0.01 240;
+        --input: 0.25 0.01 240;
+        --ring: 0.65 0.20 250;
         
-        --chart-1: 0.65 0.16 180;
-        --chart-2: 0.70 0.14 200;
-        --chart-3: 0.60 0.12 160;
-        --chart-4: 0.75 0.18 190;
-        --chart-5: 0.55 0.10 170;
+        --chart-1: 0.60 0.20 250;
+        --chart-2: 0.70 0.18 40;
+        --chart-3: 0.65 0.18 260;
+        --chart-4: 0.75 0.16 35;
+        --chart-5: 0.55 0.15 245;
     }
 
     * {

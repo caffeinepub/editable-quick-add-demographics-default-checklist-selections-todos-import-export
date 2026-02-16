@@ -89,6 +89,7 @@ export class ExternalBlob {
         return this;
     }
 }
+export type Time = bigint;
 export interface SurgeryCase {
     id: bigint;
     mrn: string;
@@ -110,11 +111,13 @@ export interface SurgeryCase {
     species: Species;
     cultureComplete: boolean;
 }
-export type Time = bigint;
 export interface ToDoItem {
     id: bigint;
     description: string;
     complete: boolean;
+}
+export interface UserProfile {
+    name: string;
 }
 export enum Sex {
     female = "female",
@@ -138,15 +141,22 @@ export interface backendInterface {
     addTodoItem(caseId: bigint, description: string): Promise<bigint>;
     assignCallerUserRole(user: Principal, role: UserRole): Promise<void>;
     createCase(mrn: string, patientFirstName: string, patientLastName: string, dateOfBirth: string, species: Species, breed: string, sex: Sex, presentingComplaint: string, arrivalDate: Time | null, dischargeNotesComplete: boolean, pdvmNotified: boolean, labsComplete: boolean, histoComplete: boolean, surgeryReportComplete: boolean, imagingComplete: boolean, cultureComplete: boolean, notes: string, todoDescriptions: Array<string>): Promise<bigint>;
+    debugGetRole(): Promise<string>;
     deleteCase(id: bigint): Promise<void>;
     deleteTodoItem(caseId: bigint, todoId: bigint): Promise<void>;
+    ensureUserRole(): Promise<void>;
     exportCases(): Promise<Array<SurgeryCase>>;
+    getCallerUserProfile(): Promise<UserProfile | null>;
     getCallerUserRole(): Promise<UserRole>;
     getCase(id: bigint): Promise<SurgeryCase | null>;
+    getCaseCount(): Promise<bigint>;
     getCasesBySpecies(species: Species): Promise<Array<SurgeryCase>>;
+    getUserProfile(user: Principal): Promise<UserProfile | null>;
+    getVersion(): Promise<string>;
     importCases(casesArray: Array<SurgeryCase>): Promise<void>;
     isCallerAdmin(): Promise<boolean>;
     listCases(): Promise<Array<SurgeryCase>>;
+    saveCallerUserProfile(profile: UserProfile): Promise<void>;
     toggleCulture(id: bigint): Promise<boolean>;
     toggleDischargeNotes(id: bigint): Promise<boolean>;
     toggleHisto(id: bigint): Promise<boolean>;
@@ -157,7 +167,7 @@ export interface backendInterface {
     toggleTodoComplete(caseId: bigint, todoId: bigint): Promise<void>;
     updateCase(id: bigint, mrn: string, patientFirstName: string, patientLastName: string, dateOfBirth: string, arrivalDate: Time, species: Species, breed: string, sex: Sex, presentingComplaint: string, dischargeNotesComplete: boolean, pdvmNotified: boolean, labsComplete: boolean, histoComplete: boolean, surgeryReportComplete: boolean, imagingComplete: boolean, cultureComplete: boolean, notes: string, todos: Array<ToDoItem>): Promise<void>;
 }
-import type { Sex as _Sex, Species as _Species, SurgeryCase as _SurgeryCase, Time as _Time, ToDoItem as _ToDoItem, UserRole as _UserRole } from "./declarations/backend.did.d.ts";
+import type { Sex as _Sex, Species as _Species, SurgeryCase as _SurgeryCase, Time as _Time, ToDoItem as _ToDoItem, UserProfile as _UserProfile, UserRole as _UserRole } from "./declarations/backend.did.d.ts";
 export class Backend implements backendInterface {
     constructor(private actor: ActorSubclass<_SERVICE>, private _uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, private _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, private processError?: (error: unknown) => never){}
     async _initializeAccessControlWithSecret(arg0: string): Promise<void> {
@@ -216,6 +226,20 @@ export class Backend implements backendInterface {
             return result;
         }
     }
+    async debugGetRole(): Promise<string> {
+        if (this.processError) {
+            try {
+                const result = await this.actor.debugGetRole();
+                return result;
+            } catch (e) {
+                this.processError(e);
+                throw new Error("unreachable");
+            }
+        } else {
+            const result = await this.actor.debugGetRole();
+            return result;
+        }
+    }
     async deleteCase(arg0: bigint): Promise<void> {
         if (this.processError) {
             try {
@@ -244,6 +268,20 @@ export class Backend implements backendInterface {
             return result;
         }
     }
+    async ensureUserRole(): Promise<void> {
+        if (this.processError) {
+            try {
+                const result = await this.actor.ensureUserRole();
+                return result;
+            } catch (e) {
+                this.processError(e);
+                throw new Error("unreachable");
+            }
+        } else {
+            const result = await this.actor.ensureUserRole();
+            return result;
+        }
+    }
     async exportCases(): Promise<Array<SurgeryCase>> {
         if (this.processError) {
             try {
@@ -258,32 +296,60 @@ export class Backend implements backendInterface {
             return from_candid_vec_n8(this._uploadFile, this._downloadFile, result);
         }
     }
+    async getCallerUserProfile(): Promise<UserProfile | null> {
+        if (this.processError) {
+            try {
+                const result = await this.actor.getCallerUserProfile();
+                return from_candid_opt_n15(this._uploadFile, this._downloadFile, result);
+            } catch (e) {
+                this.processError(e);
+                throw new Error("unreachable");
+            }
+        } else {
+            const result = await this.actor.getCallerUserProfile();
+            return from_candid_opt_n15(this._uploadFile, this._downloadFile, result);
+        }
+    }
     async getCallerUserRole(): Promise<UserRole> {
         if (this.processError) {
             try {
                 const result = await this.actor.getCallerUserRole();
-                return from_candid_UserRole_n15(this._uploadFile, this._downloadFile, result);
+                return from_candid_UserRole_n16(this._uploadFile, this._downloadFile, result);
             } catch (e) {
                 this.processError(e);
                 throw new Error("unreachable");
             }
         } else {
             const result = await this.actor.getCallerUserRole();
-            return from_candid_UserRole_n15(this._uploadFile, this._downloadFile, result);
+            return from_candid_UserRole_n16(this._uploadFile, this._downloadFile, result);
         }
     }
     async getCase(arg0: bigint): Promise<SurgeryCase | null> {
         if (this.processError) {
             try {
                 const result = await this.actor.getCase(arg0);
-                return from_candid_opt_n17(this._uploadFile, this._downloadFile, result);
+                return from_candid_opt_n18(this._uploadFile, this._downloadFile, result);
             } catch (e) {
                 this.processError(e);
                 throw new Error("unreachable");
             }
         } else {
             const result = await this.actor.getCase(arg0);
-            return from_candid_opt_n17(this._uploadFile, this._downloadFile, result);
+            return from_candid_opt_n18(this._uploadFile, this._downloadFile, result);
+        }
+    }
+    async getCaseCount(): Promise<bigint> {
+        if (this.processError) {
+            try {
+                const result = await this.actor.getCaseCount();
+                return result;
+            } catch (e) {
+                this.processError(e);
+                throw new Error("unreachable");
+            }
+        } else {
+            const result = await this.actor.getCaseCount();
+            return result;
         }
     }
     async getCasesBySpecies(arg0: Species): Promise<Array<SurgeryCase>> {
@@ -300,17 +366,45 @@ export class Backend implements backendInterface {
             return from_candid_vec_n8(this._uploadFile, this._downloadFile, result);
         }
     }
-    async importCases(arg0: Array<SurgeryCase>): Promise<void> {
+    async getUserProfile(arg0: Principal): Promise<UserProfile | null> {
         if (this.processError) {
             try {
-                const result = await this.actor.importCases(to_candid_vec_n18(this._uploadFile, this._downloadFile, arg0));
+                const result = await this.actor.getUserProfile(arg0);
+                return from_candid_opt_n15(this._uploadFile, this._downloadFile, result);
+            } catch (e) {
+                this.processError(e);
+                throw new Error("unreachable");
+            }
+        } else {
+            const result = await this.actor.getUserProfile(arg0);
+            return from_candid_opt_n15(this._uploadFile, this._downloadFile, result);
+        }
+    }
+    async getVersion(): Promise<string> {
+        if (this.processError) {
+            try {
+                const result = await this.actor.getVersion();
                 return result;
             } catch (e) {
                 this.processError(e);
                 throw new Error("unreachable");
             }
         } else {
-            const result = await this.actor.importCases(to_candid_vec_n18(this._uploadFile, this._downloadFile, arg0));
+            const result = await this.actor.getVersion();
+            return result;
+        }
+    }
+    async importCases(arg0: Array<SurgeryCase>): Promise<void> {
+        if (this.processError) {
+            try {
+                const result = await this.actor.importCases(to_candid_vec_n19(this._uploadFile, this._downloadFile, arg0));
+                return result;
+            } catch (e) {
+                this.processError(e);
+                throw new Error("unreachable");
+            }
+        } else {
+            const result = await this.actor.importCases(to_candid_vec_n19(this._uploadFile, this._downloadFile, arg0));
             return result;
         }
     }
@@ -340,6 +434,20 @@ export class Backend implements backendInterface {
         } else {
             const result = await this.actor.listCases();
             return from_candid_vec_n8(this._uploadFile, this._downloadFile, result);
+        }
+    }
+    async saveCallerUserProfile(arg0: UserProfile): Promise<void> {
+        if (this.processError) {
+            try {
+                const result = await this.actor.saveCallerUserProfile(arg0);
+                return result;
+            } catch (e) {
+                this.processError(e);
+                throw new Error("unreachable");
+            }
+        } else {
+            const result = await this.actor.saveCallerUserProfile(arg0);
+            return result;
         }
     }
     async toggleCulture(arg0: bigint): Promise<boolean> {
@@ -478,10 +586,13 @@ function from_candid_Species_n13(_uploadFile: (file: ExternalBlob) => Promise<Ui
 function from_candid_SurgeryCase_n9(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: _SurgeryCase): SurgeryCase {
     return from_candid_record_n10(_uploadFile, _downloadFile, value);
 }
-function from_candid_UserRole_n15(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: _UserRole): UserRole {
-    return from_candid_variant_n16(_uploadFile, _downloadFile, value);
+function from_candid_UserRole_n16(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: _UserRole): UserRole {
+    return from_candid_variant_n17(_uploadFile, _downloadFile, value);
 }
-function from_candid_opt_n17(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: [] | [_SurgeryCase]): SurgeryCase | null {
+function from_candid_opt_n15(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: [] | [_UserProfile]): UserProfile | null {
+    return value.length === 0 ? null : value[0];
+}
+function from_candid_opt_n18(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: [] | [_SurgeryCase]): SurgeryCase | null {
     return value.length === 0 ? null : from_candid_SurgeryCase_n9(_uploadFile, _downloadFile, value[0]);
 }
 function from_candid_record_n10(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: {
@@ -569,7 +680,7 @@ function from_candid_variant_n14(_uploadFile: (file: ExternalBlob) => Promise<Ui
 }): Species {
     return "other" in value ? Species.other : "feline" in value ? Species.feline : "canine" in value ? Species.canine : value;
 }
-function from_candid_variant_n16(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: {
+function from_candid_variant_n17(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: {
     admin: null;
 } | {
     user: null;
@@ -587,8 +698,8 @@ function to_candid_Sex_n5(_uploadFile: (file: ExternalBlob) => Promise<Uint8Arra
 function to_candid_Species_n3(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: Species): _Species {
     return to_candid_variant_n4(_uploadFile, _downloadFile, value);
 }
-function to_candid_SurgeryCase_n19(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: SurgeryCase): _SurgeryCase {
-    return to_candid_record_n20(_uploadFile, _downloadFile, value);
+function to_candid_SurgeryCase_n20(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: SurgeryCase): _SurgeryCase {
+    return to_candid_record_n21(_uploadFile, _downloadFile, value);
 }
 function to_candid_UserRole_n1(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: UserRole): _UserRole {
     return to_candid_variant_n2(_uploadFile, _downloadFile, value);
@@ -596,7 +707,7 @@ function to_candid_UserRole_n1(_uploadFile: (file: ExternalBlob) => Promise<Uint
 function to_candid_opt_n7(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: Time | null): [] | [_Time] {
     return value === null ? candid_none() : candid_some(value);
 }
-function to_candid_record_n20(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: {
+function to_candid_record_n21(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: {
     id: bigint;
     mrn: string;
     sex: Sex;
@@ -712,8 +823,8 @@ function to_candid_variant_n6(_uploadFile: (file: ExternalBlob) => Promise<Uint8
         unknown_: null
     } : value;
 }
-function to_candid_vec_n18(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: Array<SurgeryCase>): Array<_SurgeryCase> {
-    return value.map((x)=>to_candid_SurgeryCase_n19(_uploadFile, _downloadFile, x));
+function to_candid_vec_n19(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: Array<SurgeryCase>): Array<_SurgeryCase> {
+    return value.map((x)=>to_candid_SurgeryCase_n20(_uploadFile, _downloadFile, x));
 }
 export interface CreateActorOptions {
     agent?: Agent;

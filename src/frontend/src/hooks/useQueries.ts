@@ -83,6 +83,22 @@ export function useGetCase(id: bigint) {
   });
 }
 
+export function useGetCaseCount() {
+  const { actor, isFetching } = useActor();
+  const { identity } = useInternetIdentity();
+  const principal = identity?.getPrincipal().toString();
+
+  return useQuery<number>({
+    queryKey: ['caseCount'],
+    queryFn: async () => {
+      if (!actor || !principal) return 0;
+      const count = await actor.getCaseCount();
+      return Number(count);
+    },
+    enabled: !!actor && !isFetching && !!principal,
+  });
+}
+
 // Helper to map checklist items to to-do descriptions
 function getCheckedTodoDescriptions(data: CaseFormData): string[] {
   const todos: string[] = [];
@@ -161,6 +177,7 @@ export function useCreateCase() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['cases'] });
+      queryClient.invalidateQueries({ queryKey: ['caseCount'] });
     },
   });
 }
@@ -221,23 +238,27 @@ export function useUpdateCase() {
           await enqueueOperation(operation);
           
           // Optimistic update
-          queryClient.setQueryData<SurgeryCase | null>(['case', id.toString()], (old) => {
-            if (!old) return null;
-            return {
-              ...old,
-              ...data,
-              todos: todosToSave,
-            };
-          });
+          queryClient.setQueryData<SurgeryCase[]>(['cases'], (old = []) =>
+            old.map((c) =>
+              c.id === id
+                ? {
+                    ...c,
+                    ...data,
+                    todos: todosToSave,
+                  }
+                : c
+            )
+          );
           
           return;
         }
         throw error;
       }
     },
-    onSuccess: (_, { id }) => {
+    onSuccess: (_, variables) => {
       queryClient.invalidateQueries({ queryKey: ['cases'] });
-      queryClient.invalidateQueries({ queryKey: ['case', id.toString()] });
+      queryClient.invalidateQueries({ queryKey: ['case', variables.id.toString()] });
+      queryClient.invalidateQueries({ queryKey: ['caseCount'] });
     },
   });
 }
@@ -278,95 +299,294 @@ export function useDeleteCase() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['cases'] });
+      queryClient.invalidateQueries({ queryKey: ['caseCount'] });
     },
   });
 }
 
-// Checklist Toggle Mutations
-function createToggleMutation(field: 'dischargeNotes' | 'pdvmNotified' | 'labs' | 'histo' | 'surgeryReport' | 'imaging' | 'culture', actorMethod: string) {
-  return function useToggle() {
-    const { actor } = useActor();
-    const { identity } = useInternetIdentity();
-    const queryClient = useQueryClient();
-    const principal = identity?.getPrincipal().toString();
-
-    return useMutation({
-      mutationFn: async (id: bigint) => {
-        if (!actor || !principal) throw new Error('Actor not available');
-        
-        try {
-          return await (actor as any)[actorMethod](id);
-        } catch (error) {
-          if (isNetworkError(error)) {
-            // Queue for later
-            const operation: Omit<ToggleChecklistOperation, 'id'> = {
-              type: 'toggleChecklist',
-              principal,
-              caseId: id,
-              field,
-              createdAt: Date.now(),
-              status: 'pending',
-            };
-            await enqueueOperation(operation);
-            
-            // Optimistic update
-            queryClient.setQueryData<SurgeryCase | null>(['case', id.toString()], (old) => {
-              if (!old) return null;
-              return {
-                ...old,
-                [field + 'Complete']: !(old as any)[field + 'Complete'],
-              };
-            });
-            
-            return !(queryClient.getQueryData<SurgeryCase>(['case', id.toString()]) as any)?.[field + 'Complete'];
-          }
-          throw error;
-        }
-      },
-      onSuccess: (_, id) => {
-        queryClient.invalidateQueries({ queryKey: ['case', id.toString()] });
-        queryClient.invalidateQueries({ queryKey: ['cases'] });
-      },
-    });
-  };
-}
-
-export const useToggleDischargeNotes = createToggleMutation('dischargeNotes', 'toggleDischargeNotes');
-export const useTogglePdvmNotified = createToggleMutation('pdvmNotified', 'togglePdvmNotified');
-export const useToggleLabs = createToggleMutation('labs', 'toggleLabs');
-export const useToggleHisto = createToggleMutation('histo', 'toggleHisto');
-export const useToggleSurgeryReport = createToggleMutation('surgeryReport', 'toggleSurgeryReport');
-export const useToggleImaging = createToggleMutation('imaging', 'toggleImaging');
-export const useToggleCulture = createToggleMutation('culture', 'toggleCulture');
-
-// Export/Import
-export function useExportCases() {
+// Checklist toggle mutations
+export function useToggleDischargeNotes() {
   const { actor } = useActor();
-
-  return useMutation({
-    mutationFn: async () => {
-      if (!actor) throw new Error('Actor not available');
-      return actor.exportCases();
-    },
-  });
-}
-
-export function useImportCases() {
-  const { actor } = useActor();
+  const { identity } = useInternetIdentity();
   const queryClient = useQueryClient();
+  const principal = identity?.getPrincipal().toString();
 
   return useMutation({
-    mutationFn: async (cases: SurgeryCase[]) => {
-      if (!actor) throw new Error('Actor not available');
-      return actor.importCases(cases);
+    mutationFn: async (id: bigint) => {
+      if (!actor || !principal) throw new Error('Actor not available');
+      
+      try {
+        return await actor.toggleDischargeNotes(id);
+      } catch (error) {
+        if (isNetworkError(error)) {
+          const operation: Omit<ToggleChecklistOperation, 'id'> = {
+            type: 'toggleChecklist',
+            principal,
+            caseId: id,
+            field: 'dischargeNotes',
+            createdAt: Date.now(),
+            status: 'pending',
+          };
+          await enqueueOperation(operation);
+          
+          // Optimistic update
+          queryClient.setQueryData<SurgeryCase | null>(['case', id.toString()], (old) =>
+            old ? { ...old, dischargeNotesComplete: !old.dischargeNotesComplete } : null
+          );
+          
+          return !queryClient.getQueryData<SurgeryCase>(['case', id.toString()])?.dischargeNotesComplete;
+        }
+        throw error;
+      }
     },
-    onSuccess: () => {
+    onSuccess: (_, id) => {
       queryClient.invalidateQueries({ queryKey: ['cases'] });
+      queryClient.invalidateQueries({ queryKey: ['case', id.toString()] });
     },
   });
 }
 
-// To-Do Item Mutations
+export function useTogglePdvmNotified() {
+  const { actor } = useActor();
+  const { identity } = useInternetIdentity();
+  const queryClient = useQueryClient();
+  const principal = identity?.getPrincipal().toString();
+
+  return useMutation({
+    mutationFn: async (id: bigint) => {
+      if (!actor || !principal) throw new Error('Actor not available');
+      
+      try {
+        return await actor.togglePdvmNotified(id);
+      } catch (error) {
+        if (isNetworkError(error)) {
+          const operation: Omit<ToggleChecklistOperation, 'id'> = {
+            type: 'toggleChecklist',
+            principal,
+            caseId: id,
+            field: 'pdvmNotified',
+            createdAt: Date.now(),
+            status: 'pending',
+          };
+          await enqueueOperation(operation);
+          
+          queryClient.setQueryData<SurgeryCase | null>(['case', id.toString()], (old) =>
+            old ? { ...old, pdvmNotified: !old.pdvmNotified } : null
+          );
+          
+          return !queryClient.getQueryData<SurgeryCase>(['case', id.toString()])?.pdvmNotified;
+        }
+        throw error;
+      }
+    },
+    onSuccess: (_, id) => {
+      queryClient.invalidateQueries({ queryKey: ['cases'] });
+      queryClient.invalidateQueries({ queryKey: ['case', id.toString()] });
+    },
+  });
+}
+
+export function useToggleLabs() {
+  const { actor } = useActor();
+  const { identity } = useInternetIdentity();
+  const queryClient = useQueryClient();
+  const principal = identity?.getPrincipal().toString();
+
+  return useMutation({
+    mutationFn: async (id: bigint) => {
+      if (!actor || !principal) throw new Error('Actor not available');
+      
+      try {
+        return await actor.toggleLabs(id);
+      } catch (error) {
+        if (isNetworkError(error)) {
+          const operation: Omit<ToggleChecklistOperation, 'id'> = {
+            type: 'toggleChecklist',
+            principal,
+            caseId: id,
+            field: 'labs',
+            createdAt: Date.now(),
+            status: 'pending',
+          };
+          await enqueueOperation(operation);
+          
+          queryClient.setQueryData<SurgeryCase | null>(['case', id.toString()], (old) =>
+            old ? { ...old, labsComplete: !old.labsComplete } : null
+          );
+          
+          return !queryClient.getQueryData<SurgeryCase>(['case', id.toString()])?.labsComplete;
+        }
+        throw error;
+      }
+    },
+    onSuccess: (_, id) => {
+      queryClient.invalidateQueries({ queryKey: ['cases'] });
+      queryClient.invalidateQueries({ queryKey: ['case', id.toString()] });
+    },
+  });
+}
+
+export function useToggleHisto() {
+  const { actor } = useActor();
+  const { identity } = useInternetIdentity();
+  const queryClient = useQueryClient();
+  const principal = identity?.getPrincipal().toString();
+
+  return useMutation({
+    mutationFn: async (id: bigint) => {
+      if (!actor || !principal) throw new Error('Actor not available');
+      
+      try {
+        return await actor.toggleHisto(id);
+      } catch (error) {
+        if (isNetworkError(error)) {
+          const operation: Omit<ToggleChecklistOperation, 'id'> = {
+            type: 'toggleChecklist',
+            principal,
+            caseId: id,
+            field: 'histo',
+            createdAt: Date.now(),
+            status: 'pending',
+          };
+          await enqueueOperation(operation);
+          
+          queryClient.setQueryData<SurgeryCase | null>(['case', id.toString()], (old) =>
+            old ? { ...old, histoComplete: !old.histoComplete } : null
+          );
+          
+          return !queryClient.getQueryData<SurgeryCase>(['case', id.toString()])?.histoComplete;
+        }
+        throw error;
+      }
+    },
+    onSuccess: (_, id) => {
+      queryClient.invalidateQueries({ queryKey: ['cases'] });
+      queryClient.invalidateQueries({ queryKey: ['case', id.toString()] });
+    },
+  });
+}
+
+export function useToggleSurgeryReport() {
+  const { actor } = useActor();
+  const { identity } = useInternetIdentity();
+  const queryClient = useQueryClient();
+  const principal = identity?.getPrincipal().toString();
+
+  return useMutation({
+    mutationFn: async (id: bigint) => {
+      if (!actor || !principal) throw new Error('Actor not available');
+      
+      try {
+        return await actor.toggleSurgeryReport(id);
+      } catch (error) {
+        if (isNetworkError(error)) {
+          const operation: Omit<ToggleChecklistOperation, 'id'> = {
+            type: 'toggleChecklist',
+            principal,
+            caseId: id,
+            field: 'surgeryReport',
+            createdAt: Date.now(),
+            status: 'pending',
+          };
+          await enqueueOperation(operation);
+          
+          queryClient.setQueryData<SurgeryCase | null>(['case', id.toString()], (old) =>
+            old ? { ...old, surgeryReportComplete: !old.surgeryReportComplete } : null
+          );
+          
+          return !queryClient.getQueryData<SurgeryCase>(['case', id.toString()])?.surgeryReportComplete;
+        }
+        throw error;
+      }
+    },
+    onSuccess: (_, id) => {
+      queryClient.invalidateQueries({ queryKey: ['cases'] });
+      queryClient.invalidateQueries({ queryKey: ['case', id.toString()] });
+    },
+  });
+}
+
+export function useToggleImaging() {
+  const { actor } = useActor();
+  const { identity } = useInternetIdentity();
+  const queryClient = useQueryClient();
+  const principal = identity?.getPrincipal().toString();
+
+  return useMutation({
+    mutationFn: async (id: bigint) => {
+      if (!actor || !principal) throw new Error('Actor not available');
+      
+      try {
+        return await actor.toggleImaging(id);
+      } catch (error) {
+        if (isNetworkError(error)) {
+          const operation: Omit<ToggleChecklistOperation, 'id'> = {
+            type: 'toggleChecklist',
+            principal,
+            caseId: id,
+            field: 'imaging',
+            createdAt: Date.now(),
+            status: 'pending',
+          };
+          await enqueueOperation(operation);
+          
+          queryClient.setQueryData<SurgeryCase | null>(['case', id.toString()], (old) =>
+            old ? { ...old, imagingComplete: !old.imagingComplete } : null
+          );
+          
+          return !queryClient.getQueryData<SurgeryCase>(['case', id.toString()])?.imagingComplete;
+        }
+        throw error;
+      }
+    },
+    onSuccess: (_, id) => {
+      queryClient.invalidateQueries({ queryKey: ['cases'] });
+      queryClient.invalidateQueries({ queryKey: ['case', id.toString()] });
+    },
+  });
+}
+
+export function useToggleCulture() {
+  const { actor } = useActor();
+  const { identity } = useInternetIdentity();
+  const queryClient = useQueryClient();
+  const principal = identity?.getPrincipal().toString();
+
+  return useMutation({
+    mutationFn: async (id: bigint) => {
+      if (!actor || !principal) throw new Error('Actor not available');
+      
+      try {
+        return await actor.toggleCulture(id);
+      } catch (error) {
+        if (isNetworkError(error)) {
+          const operation: Omit<ToggleChecklistOperation, 'id'> = {
+            type: 'toggleChecklist',
+            principal,
+            caseId: id,
+            field: 'culture',
+            createdAt: Date.now(),
+            status: 'pending',
+          };
+          await enqueueOperation(operation);
+          
+          queryClient.setQueryData<SurgeryCase | null>(['case', id.toString()], (old) =>
+            old ? { ...old, cultureComplete: !old.cultureComplete } : null
+          );
+          
+          return !queryClient.getQueryData<SurgeryCase>(['case', id.toString()])?.cultureComplete;
+        }
+        throw error;
+      }
+    },
+    onSuccess: (_, id) => {
+      queryClient.invalidateQueries({ queryKey: ['cases'] });
+      queryClient.invalidateQueries({ queryKey: ['case', id.toString()] });
+    },
+  });
+}
+
+// To-do item mutations
 export function useAddTodoItem() {
   const { actor } = useActor();
   const { identity } = useInternetIdentity();
@@ -394,25 +614,27 @@ export function useAddTodoItem() {
           await enqueueOperation(operation);
           
           // Optimistic update
-          queryClient.setQueryData<SurgeryCase | null>(['case', caseId.toString()], (old) => {
-            if (!old) return null;
-            return {
-              ...old,
-              todos: [
-                ...old.todos,
-                { id: BigInt(tempId), description, complete: false },
-              ],
-            };
-          });
+          const tempIdBigInt = BigInt(Date.now());
+          queryClient.setQueryData<SurgeryCase | null>(['case', caseId.toString()], (old) =>
+            old
+              ? {
+                  ...old,
+                  todos: [
+                    ...old.todos,
+                    { id: tempIdBigInt, description, complete: false },
+                  ],
+                }
+              : null
+          );
           
-          return BigInt(tempId);
+          return tempIdBigInt;
         }
         throw error;
       }
     },
-    onSuccess: (_, { caseId }) => {
-      queryClient.invalidateQueries({ queryKey: ['case', caseId.toString()] });
+    onSuccess: (_, variables) => {
       queryClient.invalidateQueries({ queryKey: ['cases'] });
+      queryClient.invalidateQueries({ queryKey: ['case', variables.caseId.toString()] });
     },
   });
 }
@@ -442,24 +664,25 @@ export function useToggleTodoComplete() {
           await enqueueOperation(operation);
           
           // Optimistic update
-          queryClient.setQueryData<SurgeryCase | null>(['case', caseId.toString()], (old) => {
-            if (!old) return null;
-            return {
-              ...old,
-              todos: old.todos.map((t) =>
-                t.id === todoId ? { ...t, complete: !t.complete } : t
-              ),
-            };
-          });
+          queryClient.setQueryData<SurgeryCase | null>(['case', caseId.toString()], (old) =>
+            old
+              ? {
+                  ...old,
+                  todos: old.todos.map((todo) =>
+                    todo.id === todoId ? { ...todo, complete: !todo.complete } : todo
+                  ),
+                }
+              : null
+          );
           
           return;
         }
         throw error;
       }
     },
-    onSuccess: (_, { caseId }) => {
-      queryClient.invalidateQueries({ queryKey: ['case', caseId.toString()] });
+    onSuccess: (_, variables) => {
       queryClient.invalidateQueries({ queryKey: ['cases'] });
+      queryClient.invalidateQueries({ queryKey: ['case', variables.caseId.toString()] });
     },
   });
 }
@@ -489,22 +712,87 @@ export function useDeleteTodoItem() {
           await enqueueOperation(operation);
           
           // Optimistic update
-          queryClient.setQueryData<SurgeryCase | null>(['case', caseId.toString()], (old) => {
-            if (!old) return null;
-            return {
-              ...old,
-              todos: old.todos.filter((t) => t.id !== todoId),
-            };
-          });
+          queryClient.setQueryData<SurgeryCase | null>(['case', caseId.toString()], (old) =>
+            old
+              ? {
+                  ...old,
+                  todos: old.todos.filter((todo) => todo.id !== todoId),
+                }
+              : null
+          );
           
           return;
         }
         throw error;
       }
     },
-    onSuccess: (_, { caseId }) => {
-      queryClient.invalidateQueries({ queryKey: ['case', caseId.toString()] });
+    onSuccess: (_, variables) => {
       queryClient.invalidateQueries({ queryKey: ['cases'] });
+      queryClient.invalidateQueries({ queryKey: ['case', variables.caseId.toString()] });
+    },
+  });
+}
+
+// Export/Import mutations
+export function useExportCases() {
+  const { actor } = useActor();
+
+  return useMutation({
+    mutationFn: async () => {
+      if (!actor) throw new Error('Actor not available');
+      return await actor.exportCases();
+    },
+  });
+}
+
+export function useImportCases() {
+  const { actor } = useActor();
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (cases: SurgeryCase[]) => {
+      if (!actor) throw new Error('Actor not available');
+      await actor.importCases(cases);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['cases'] });
+      queryClient.invalidateQueries({ queryKey: ['caseCount'] });
+    },
+  });
+}
+
+// User Profile Queries
+export function useGetCallerUserProfile() {
+  const { actor, isFetching: actorFetching } = useActor();
+
+  const query = useQuery({
+    queryKey: ['currentUserProfile'],
+    queryFn: async () => {
+      if (!actor) throw new Error('Actor not available');
+      return actor.getCallerUserProfile();
+    },
+    enabled: !!actor && !actorFetching,
+    retry: false,
+  });
+
+  return {
+    ...query,
+    isLoading: actorFetching || query.isLoading,
+    isFetched: !!actor && query.isFetched,
+  };
+}
+
+export function useSaveCallerUserProfile() {
+  const { actor } = useActor();
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (profile: { name: string }) => {
+      if (!actor) throw new Error('Actor not available');
+      await actor.saveCallerUserProfile(profile);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['currentUserProfile'] });
     },
   });
 }

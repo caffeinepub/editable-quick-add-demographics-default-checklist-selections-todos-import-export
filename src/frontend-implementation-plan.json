@@ -1,181 +1,44 @@
 {
   "kind": "implementation_plan",
   "version": "1.0",
-  "title": "Offline mode with IndexedDB case cache and deferred sync queue",
+  "title": "Improve DebugPanel actor error lookup and case count tracing",
   "requirements": [
     {
       "id": "REQ-1",
-      "summary": "Provide offline-aware read access to previously loaded case list and case details (including to-dos) from a durable browser cache when connectivity/canister is unavailable.",
+      "summary": "Fix DebugPanel to read the cached backend actor error from the exact React Query key used by useActor for both authenticated and anonymous users.",
       "acceptanceCriteria": [
-        "If the user has previously loaded the case list while online, then turning on browser offline mode (or losing connectivity) still allows viewing the case list from a locally stored cache.",
-        "If the user has previously opened a case detail page while online, then turning offline still allows viewing that case’s details and to-do list from the local cache.",
-        "If no local cache exists yet (fresh install), offline mode shows an empty-state message indicating that data must be loaded at least once while online."
+        "When logged out, DebugPanel does not look up actor query state using the literal string \"Not logged in\" as part of the key.",
+        "When logged in, DebugPanel reads the actor query state using the same query key structure as useActor (i.e., based on the actual principal string), and displays any cached actor initialization error if present.",
+        "No changes are made to immutable hook files (e.g., frontend/src/hooks/useActor.ts)."
       ],
       "file_operations": [
         {
-          "path": "frontend/src/utils/offlineDb.ts",
-          "operation": "create",
-          "description": "Implement an IndexedDB-backed cache layer for surgery cases, including read/write helpers for cached case list and per-case details, plus cache presence checks used for offline empty-states."
-        },
-        {
-          "path": "frontend/src/hooks/useOfflineStatus.ts",
-          "operation": "create",
-          "description": "Add a small hook that tracks browser connectivity state (navigator.onLine + online/offline events) for use throughout the UI."
-        },
-        {
-          "path": "frontend/src/hooks/useQueries.ts",
+          "path": "frontend/src/components/debug/DebugPanel.tsx",
           "operation": "modify",
-          "description": "Enhance read queries (useListCases/useGetCase) to populate the local cache on successful online fetch, and to fall back to cached data when offline or when the canister call fails due to connectivity."
-        },
-        {
-          "path": "frontend/src/pages/CaseListPage.tsx",
-          "operation": "modify",
-          "description": "Adjust list rendering to show a clear offline empty-state message when offline and no cached list exists yet; otherwise render cached list data normally."
-        },
-        {
-          "path": "frontend/src/pages/CaseDetailPage.tsx",
-          "operation": "modify",
-          "description": "Adjust detail rendering to support offline fallback: show cached case details when available, and show an offline empty-state message when offline and the case is not cached."
+          "description": "Update the actor React Query key lookup to match useActor’s queryKey structure (['actor', identity?.getPrincipal().toString()]) instead of using the UI fallback string. Keep the displayed principal text as-is for the UI, but ensure the query key uses the real principal string or undefined when logged out so cached actor initialization errors remain visible."
         }
       ]
     },
     {
       "id": "REQ-2",
-      "summary": "Add a non-blocking TopNav indicator for offline/online state plus cache/sync status messaging in English.",
+      "summary": "Add explicit case-count tracing in DebugPanel by querying actor.getCaseCount() separately and displaying it alongside the existing listCases-derived count, with independent error states and a refresh that refetches both.",
       "acceptanceCriteria": [
-        "When the browser is offline, a visible indicator shows the app is in Offline Mode.",
-        "When the browser returns online, the indicator updates automatically without a page refresh.",
-        "The indicator messaging is concise and does not block normal navigation."
+        "A new React Query hook (or equivalent query) is added (in a non-immutable file) that calls actor.getCaseCount() and returns a numeric count.",
+        "DebugPanel shows both: (1) the list-based count derived from actor.listCases() (current behavior) and (2) the direct count from actor.getCaseCount().",
+        "Each displayed count indicates its source call (\"listCases\" vs \"getCaseCount\") in the UI using English user-facing text.",
+        "The refresh control in DebugPanel refreshes the relevant case-count queries and shows a success/error toast in English depending on the result.",
+        "If either call fails, DebugPanel shows an error indicator for that specific count while leaving the other count unaffected if it succeeds."
       ],
       "file_operations": [
-        {
-          "path": "frontend/src/components/offline/OfflineStatusIndicator.tsx",
-          "operation": "create",
-          "description": "Create a TopNav-friendly status indicator component that displays: Online/Offline Mode, syncing state, and pending changes count using existing shadcn-ui components. Verify the component's usage instructions before implementing."
-        },
-        {
-          "path": "frontend/src/components/layout/TopNav.tsx",
-          "operation": "modify",
-          "description": "Wire the new OfflineStatusIndicator into the TopNav layout so connectivity and sync status are always visible while authenticated. Verify the component's usage instructions before implementing."
-        },
-        {
-          "path": "frontend/src/components/layout/AppLayout.tsx",
-          "operation": "modify",
-          "description": "Mount a lightweight background sync listener component/effect (non-visual) in the authenticated layout so status stays current during navigation (without modifying frontend/src/main.tsx)."
-        }
-      ]
-    },
-    {
-      "id": "REQ-3",
-      "summary": "Persist cached case list and case detail query results in durable storage (IndexedDB) per Internet Identity principal and restore on app start (no immutable path edits).",
-      "acceptanceCriteria": [
-        "Reloading the app while offline still displays the most recently cached case list and any cached case details.",
-        "Cached data is stored per authenticated Internet Identity principal (do not mix cached cases between different logged-in users on the same browser).",
-        "The cache layer does not require modifications to immutable frontend paths (e.g., do not edit frontend/src/main.tsx)."
-      ],
-      "file_operations": [
-        {
-          "path": "frontend/src/utils/offlineDb.ts",
-          "operation": "modify",
-          "description": "Add principal-scoped keying/namespacing for cached case list and case details, and add utilities to clear cache for a given principal (and/or clear all cached principals on logout)."
-        },
         {
           "path": "frontend/src/hooks/useQueries.ts",
           "operation": "modify",
-          "description": "Ensure query keys and cache reads/writes are principal-aware by deriving a stable principal identifier from useInternetIdentity (without modifying immutable auth/actor hooks)."
+          "description": "Add a new React Query hook (e.g., useGetCaseCount) that calls actor.getCaseCount(), converts the returned bigint to a number for UI display, and exposes loading/error/refetch state. Keep it in this non-immutable file and gate execution similarly to other queries (requires actor readiness and an authenticated principal where applicable)."
         },
         {
-          "path": "frontend/src/components/auth/LoginButton.tsx",
+          "path": "frontend/src/components/debug/DebugPanel.tsx",
           "operation": "modify",
-          "description": "On logout, clear all locally cached application data (React Query + IndexedDB cache + queued operations) so data from one user is not visible after switching accounts."
-        }
-      ]
-    },
-    {
-      "id": "REQ-4",
-      "summary": "Queue offline write operations with optimistic UI updates, persist the queue across reloads, and automatically replay on reconnect with last-write-wins reconciliation and clear user notifications on failures.",
-      "acceptanceCriteria": [
-        "While offline, the user can create/update/delete a case or change to-dos and see the UI reflect the change immediately (optimistic update).",
-        "Queued operations persist across reloads and are replayed once the app is back online and the actor is available.",
-        "If a queued operation fails during replay, the user is notified with an English error message and the operation remains pending until the user retries or removes it.",
-        "After successful replay, pending status is cleared and the React Query cache is refreshed from the canister."
-      ],
-      "file_operations": [
-        {
-          "path": "frontend/src/types/offlineOps.ts",
-          "operation": "create",
-          "description": "Define frontend-only types for queued offline operations (case create/update/delete; todo add/toggle/delete), including metadata (id, principal, createdAt, status, lastError) to support persistence and UI display."
-        },
-        {
-          "path": "frontend/src/utils/offlineQueue.ts",
-          "operation": "create",
-          "description": "Implement persistent queue storage on top of IndexedDB: enqueue/dequeue, mark failed/succeeded, list pending/failed, remove single op, clear all with confirmation support, and helper to detect network-related failures for fallback behavior."
-        },
-        {
-          "path": "frontend/src/hooks/useOfflineSync.ts",
-          "operation": "create",
-          "description": "Create a hook that: (1) exposes pending count/list, (2) replays queued operations when online and actor is available, (3) marks failures with lastError and triggers user notifications, and (4) refreshes React Query caches after successful replay."
-        },
-        {
-          "path": "frontend/src/components/offline/OfflineSyncListener.tsx",
-          "operation": "create",
-          "description": "Add a small non-visual component that uses useOfflineSync + useOfflineStatus to automatically trigger replay on reconnect and keep sync state updated."
-        },
-        {
-          "path": "frontend/src/hooks/useQueries.ts",
-          "operation": "modify",
-          "description": "Wrap all write mutations (create/update/delete case; todo add/toggle/delete; relevant toggles) to: (a) apply optimistic React Query updates immediately, (b) enqueue operations when offline or on network failure, (c) persist queued operations, and (d) reconcile by invalidating/refetching queries after successful replay via the offline sync hook."
-        },
-        {
-          "path": "frontend/src/pages/NewCasePage.tsx",
-          "operation": "modify",
-          "description": "Ensure the create-case flow can complete offline with optimistic navigation/feedback (e.g., show that the new case is pending sync) and that it uses the queued create mutation behavior."
-        },
-        {
-          "path": "frontend/src/pages/CaseDetailPage.tsx",
-          "operation": "modify",
-          "description": "Ensure update/delete and to-do mutations reflect optimistic changes when offline and display pending/sync messaging as appropriate for the current case."
-        },
-        {
-          "path": "frontend/src/components/cases/ToDoSection.tsx",
-          "operation": "modify",
-          "description": "Integrate optimistic offline behavior for add/toggle/delete to-do actions and ensure error messages are clear when operations are queued or fail during replay."
-        },
-        {
-          "path": "frontend/src/components/layout/AppLayout.tsx",
-          "operation": "modify",
-          "description": "Wire OfflineSyncListener into the authenticated layout so queued operations replay automatically after reconnect (without modifying immutable frontend/src/main.tsx)."
-        }
-      ]
-    },
-    {
-      "id": "REQ-5",
-      "summary": "Add offline data management controls: Sync now, pending changes viewer, and a confirmation-gated clear pending changes action with warnings.",
-      "acceptanceCriteria": [
-        "A user can trigger a manual sync attempt when online.",
-        "A user can view how many pending offline changes exist.",
-        "A user can clear pending offline changes only after confirming (confirmation UI required) and is warned that clearing will discard unsynced changes."
-      ],
-      "file_operations": [
-        {
-          "path": "frontend/src/components/offline/PendingChangesDialog.tsx",
-          "operation": "create",
-          "description": "Create a dialog/sheet component that lists pending/failed queued operations, shows counts, supports retry/remove per item, and provides a confirmation-gated 'Clear pending changes' action with an explicit warning. Verify the component's usage instructions before implementing."
-        },
-        {
-          "path": "frontend/src/components/offline/OfflineStatusIndicator.tsx",
-          "operation": "modify",
-          "description": "Add a 'Sync now' action (enabled only when online) and a control to open the PendingChangesDialog; surface pending count and concise status text in English. Verify the component's usage instructions before implementing."
-        },
-        {
-          "path": "frontend/src/components/layout/TopNav.tsx",
-          "operation": "modify",
-          "description": "Ensure TopNav exposes the pending changes viewer and Sync now control via the OfflineStatusIndicator (non-blocking to navigation). Verify the component's usage instructions before implementing."
-        },
-        {
-          "path": "frontend/src/hooks/useOfflineSync.ts",
-          "operation": "modify",
-          "description": "Expose imperative actions for manual sync (Sync now), retry/remove single queued operation, and clear all pending operations with safeguards to support the UI controls."
+          "description": "Extend the Case Count section to display two separate rows/labels: one count sourced from listCases (existing useListCases length) and one sourced from getCaseCount (new hook). Add independent loading/error indicators per count. Update the refresh control to refetch both queries (listCases + getCaseCount) and show an English success toast only when the relevant refetches succeed; otherwise show an English error toast that indicates refresh failure while preserving any successfully refreshed value."
         }
       ]
     }

@@ -1,27 +1,64 @@
+import { useState } from 'react';
 import { useInternetIdentity } from '../../hooks/useInternetIdentity';
 import { useQueryClient } from '@tanstack/react-query';
-import { Button } from '@/components/ui/button';
-import { LogIn, LogOut } from 'lucide-react';
-import { clearAllCache } from '../../utils/offlineDb';
-import { clearAllOperations } from '../../utils/offlineQueue';
+import { Button } from '../ui/button';
+import { performLogoutCleanup } from '../../utils/logoutCleanup';
+import { toast } from 'sonner';
+import { safeErrorMessage } from '../../utils/safeErrorMessage';
 
 export default function LoginButton() {
   const { login, clear, loginStatus, identity } = useInternetIdentity();
   const queryClient = useQueryClient();
+  const [isLoggingOut, setIsLoggingOut] = useState(false);
 
   const isAuthenticated = !!identity;
-  const disabled = loginStatus === 'logging-in';
-  const text = loginStatus === 'logging-in' ? 'Logging in...' : isAuthenticated ? 'Logout' : 'Login';
+  const disabled = loginStatus === 'logging-in' || isLoggingOut;
+  const text = loginStatus === 'logging-in' 
+    ? 'Logging in...' 
+    : isLoggingOut 
+    ? 'Logging out...' 
+    : isAuthenticated 
+    ? 'Logout' 
+    : 'Login';
 
   const handleAuth = async () => {
     if (isAuthenticated) {
-      const principal = identity.getPrincipal().toString();
-      await clear();
-      queryClient.clear();
-      // Clear offline cache and queue
-      await clearAllCache();
-      if (principal) {
-        await clearAllOperations(principal);
+      setIsLoggingOut(true);
+      
+      try {
+        const currentPrincipal = identity.getPrincipal().toString();
+        
+        // Best-effort cleanup of offline cache and queue
+        const cleanupResult = await performLogoutCleanup(currentPrincipal);
+        
+        // Show warning if cleanup failed (but continue with logout)
+        if (!cleanupResult.success) {
+          toast.error('Logout cleanup warning', {
+            description: cleanupResult.errors.join('; '),
+          });
+        }
+
+        // Clear all React Query cache (including actor query)
+        // Cancel all ongoing queries first
+        await queryClient.cancelQueries();
+        
+        // Remove all queries to ensure clean state
+        queryClient.clear();
+        
+      } catch (error) {
+        // Even if cleanup fails, we still want to log out
+        console.error('Logout cleanup error:', error);
+        toast.error('Logout cleanup failed', {
+          description: safeErrorMessage(error),
+        });
+      } finally {
+        // Always clear identity and complete logout
+        try {
+          await clear();
+        } catch (error) {
+          console.error('Identity clear error:', error);
+        }
+        setIsLoggingOut(false);
       }
     } else {
       try {
@@ -43,17 +80,7 @@ export default function LoginButton() {
       variant={isAuthenticated ? 'outline' : 'default'}
       size="sm"
     >
-      {isAuthenticated ? (
-        <>
-          <LogOut className="mr-2 h-4 w-4" />
-          {text}
-        </>
-      ) : (
-        <>
-          <LogIn className="mr-2 h-4 w-4" />
-          {text}
-        </>
-      )}
+      {text}
     </Button>
   );
 }

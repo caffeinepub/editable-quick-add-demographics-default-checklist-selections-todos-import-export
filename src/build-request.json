@@ -1,112 +1,73 @@
 {
   "kind": "build_request",
-  "title": "Add offline mode with local case cache and deferred sync",
+  "title": "Improve DebugPanel case count tracing and actor error visibility",
   "priority": "normal",
   "requirements": [
     {
       "id": "REQ-1",
-      "text": "Implement an offline-aware local cache of surgery cases in the browser so previously loaded case data remains available when the network or IC canister is unreachable.",
+      "text": "Update the DebugPanel so the cached backend actor error is read from the correct React Query key used by useActor, even when the user is not logged in.",
       "target": "frontend",
       "source": {
         "messageIds": [
-          "msg-1"
+          "recent-msg-3",
+          "recent-msg-4"
         ],
         "quotes": [
-          "add offline mode"
+          "Everything looks good on this build — want me to open the DebugPanel component next so we can trace the case count call?",
+          "yes"
         ]
       },
       "acceptanceCriteria": [
-        "If the user has previously loaded the case list while online, then turning on browser offline mode (or losing connectivity) still allows viewing the case list from a locally stored cache.",
-        "If the user has previously opened a case detail page while online, then turning offline still allows viewing that case’s details and to-do list from the local cache.",
-        "If no local cache exists yet (fresh install), offline mode shows an empty-state message indicating that data must be loaded at least once while online."
+        "When logged out, DebugPanel does not look up actor query state using the literal string \"Not logged in\" as part of the key.",
+        "When logged in, DebugPanel reads the actor query state using the same query key structure as useActor (i.e., based on the actual principal string), and displays any cached actor initialization error if present.",
+        "No changes are made to immutable hook files (e.g., frontend/src/hooks/useActor.ts)."
       ]
     },
     {
       "id": "REQ-2",
-      "text": "Add a clear UI indicator for connectivity/offline state and cache/sync status in the main app navigation/layout (e.g., in TopNav), using English user-facing text.",
+      "text": "Add explicit case-count tracing in the DebugPanel by fetching and displaying the backend getCaseCount() result alongside the existing list-based count, so it is clear which backend call is producing the displayed number.",
       "target": "frontend",
       "source": {
         "messageIds": [
-          "msg-1"
+          "recent-msg-3",
+          "recent-msg-4"
         ],
         "quotes": [
-          "add offline mode"
+          "Everything looks good on this build — want me to open the DebugPanel component next so we can trace the case count call?",
+          "yes"
         ]
       },
       "acceptanceCriteria": [
-        "When the browser is offline, a visible indicator shows the app is in Offline Mode.",
-        "When the browser returns online, the indicator updates automatically without a page refresh.",
-        "The indicator messaging is concise and does not block normal navigation."
-      ]
-    },
-    {
-      "id": "REQ-3",
-      "text": "Persist the case list and individual case query results to durable browser storage (IndexedDB preferred; localStorage acceptable if size constraints are handled) and restore them on app start so offline mode works after a reload.",
-      "target": "frontend",
-      "source": {
-        "messageIds": [
-          "msg-1"
-        ],
-        "quotes": [
-          "add offline mode"
-        ]
-      },
-      "acceptanceCriteria": [
-        "Reloading the app while offline still displays the most recently cached case list and any cached case details.",
-        "Cached data is stored per authenticated Internet Identity principal (do not mix cached cases between different logged-in users on the same browser).",
-        "The cache layer does not require modifications to immutable frontend paths (e.g., do not edit frontend/src/main.tsx)."
-      ]
-    },
-    {
-      "id": "REQ-4",
-      "text": "Add offline-safe behavior for write actions (create/update/delete cases and to-do mutations): when offline or when the canister call fails due to network, queue the operation locally and apply an optimistic UI update; when connectivity returns, automatically replay the queued operations to the canister and reconcile the UI.",
-      "target": "frontend",
-      "source": {
-        "messageIds": [
-          "msg-1"
-        ],
-        "quotes": [
-          "add offline mode"
-        ]
-      },
-      "acceptanceCriteria": [
-        "While offline, the user can create/update/delete a case or change to-dos and see the UI reflect the change immediately (optimistic update).",
-        "Queued operations persist across reloads and are replayed once the app is back online and the actor is available.",
-        "If a queued operation fails during replay, the user is notified with an English error message and the operation remains pending until the user retries or removes it.",
-        "After successful replay, pending status is cleared and the React Query cache is refreshed from the canister."
-      ]
-    },
-    {
-      "id": "REQ-5",
-      "text": "Provide basic controls for offline data management: a manual “Sync now” action and a way to view/clear pending offline changes, with safeguards to prevent accidental data loss.",
-      "target": "frontend",
-      "source": {
-        "messageIds": [
-          "msg-1"
-        ],
-        "quotes": [
-          "add offline mode"
-        ]
-      },
-      "acceptanceCriteria": [
-        "A user can trigger a manual sync attempt when online.",
-        "A user can view how many pending offline changes exist.",
-        "A user can clear pending offline changes only after confirming (confirmation UI required) and is warned that clearing will discard unsynced changes."
+        "A new React Query hook (or equivalent query) is added (in a non-immutable file) that calls actor.getCaseCount() and returns a numeric count.",
+        "DebugPanel shows both: (1) the list-based count derived from actor.listCases() (current behavior) and (2) the direct count from actor.getCaseCount().",
+        "Each displayed count indicates its source call (\"listCases\" vs \"getCaseCount\") in the UI using English user-facing text.",
+        "The refresh control in DebugPanel refreshes the relevant case-count queries and shows a success/error toast in English depending on the result.",
+        "If either call fails, DebugPanel shows an error indicator for that specific count while leaving the other count unaffected if it succeeds."
       ]
     }
   ],
   "constraints": [
-    "Do not edit files under frontend/src/components/ui (read-only UI component sources).",
-    "Do not edit immutable frontend paths: frontend/src/hooks/useInternetIdentity.ts, frontend/src/hooks/useInternetIdentity.tsx, frontend/src/hooks/useActor.ts, frontend/src/main.tsx, frontend/src/components/ui.",
-    "Keep the backend as a single Motoko actor (no new backend services, no external databases)."
+    "Backend must remain a single Motoko actor in backend/main.mo.",
+    "Do not edit files under frontend/src/hooks/useInternetIdentity.ts, frontend/src/hooks/useActor.ts, frontend/src/main.tsx, or any files in frontend/src/components/ui (immutable paths).",
+    "Use English for all user-facing UI text."
   ],
   "nonGoals": [
-    "Implementing multi-device conflict resolution beyond a simple last-write-wins approach during sync reconciliation.",
-    "Adding real-time collaboration or live updates between multiple users/devices.",
-    "Changing the backend data model/schema unless it becomes strictly necessary for offline sync (prefer frontend-only changes)."
+    "Changing backend access control rules or role provisioning behavior.",
+    "Refactoring the general cases list/page functionality beyond what is required for DebugPanel tracing.",
+    "Adding new authentication providers or any third-party integrations."
   ],
   "imageRequirements": {
     "required": [],
     "edits": []
+  },
+  "userProfileUpdate": {
+    "goalsToAdd": [],
+    "goalsToRemove": [],
+    "preferencesToAdd": [],
+    "preferencesToRemove": [],
+    "miscToAdd": [],
+    "miscToRemove": [],
+    "fieldsToSet": {},
+    "fieldsToDelete": []
   }
 }

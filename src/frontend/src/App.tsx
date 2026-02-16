@@ -1,5 +1,6 @@
 import { RouterProvider, createRouter, createRoute, createRootRoute, Outlet } from '@tanstack/react-router';
 import { useInternetIdentity } from './hooks/useInternetIdentity';
+import { useEnsureUserRoleProvisioning } from './hooks/useEnsureUserRoleProvisioning';
 import CaseListPage from './pages/CaseListPage';
 import NewCasePage from './pages/NewCasePage';
 import CaseDetailPage from './pages/CaseDetailPage';
@@ -11,6 +12,9 @@ import { LogIn } from 'lucide-react';
 
 function RootComponent() {
   const { identity, isInitializing } = useInternetIdentity();
+  
+  // Auto-provision #user role after login
+  useEnsureUserRoleProvisioning();
   
   const isAuthenticated = !!identity;
 

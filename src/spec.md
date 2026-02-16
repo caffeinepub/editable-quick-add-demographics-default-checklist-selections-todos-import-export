@@ -1,13 +1,13 @@
 # Specification
 
 ## Summary
-**Goal:** Add an offline mode for surgery cases that caches previously loaded data locally and safely queues changes for deferred sync when connectivity returns.
+**Goal:** Improve the DebugPanel to correctly surface cached backend actor initialization errors and clearly trace case-count results from different backend calls.
 
 **Planned changes:**
-- Cache the case list and case detail/to-do data in durable browser storage (prefer IndexedDB) and restore it on app start, scoped per authenticated Internet Identity principal.
-- Add an offline/connectivity indicator plus cache/sync status in the main navigation/layout, updating automatically as connectivity changes.
-- When offline (or when canister calls fail due to network), queue case/to-do write operations locally, apply optimistic UI updates, and replay the queue automatically once online.
-- Persist the pending-operations queue across reloads; reconcile by refreshing React Query cache after successful replay and keep failed operations pending with an English error message.
-- Add basic offline data controls: “Sync now”, show count/list of pending changes, and allow clearing pending changes only after confirmation with a warning about discarding unsynced edits.
+- Update DebugPanel to read the cached actor query state using the same React Query key structure as `useActor`, without relying on a `"Not logged in"` key segment when logged out.
+- Ensure DebugPanel displays any cached actor initialization error (when present) for both logged-in and logged-out states, using the correct query key.
+- Add a new (non-immutable) React Query query/hook to call `actor.getCaseCount()` and return a numeric count.
+- Update DebugPanel UI to show two labeled counts: one derived from `actor.listCases()` and one from `actor.getCaseCount()`, with clear English source labels.
+- Update DebugPanel refresh behavior to refetch the relevant case-count queries, showing an English success/error toast, and displaying per-count error indicators without breaking the other count.
 
-**User-visible outcome:** Users can view previously loaded case lists and case details while offline, keep working with optimistic edits, see offline/sync status in the UI, and sync or manage pending changes once back online.
+**User-visible outcome:** The DebugPanel shows actor initialization errors more reliably and displays two clearly labeled case counts (“listCases” vs “getCaseCount”), with refresh and error feedback for each source independently.

@@ -52,6 +52,7 @@ export const SurgeryCase = IDL.Record({
   'species' : Species,
   'cultureComplete' : IDL.Bool,
 });
+export const UserProfile = IDL.Record({ 'name' : IDL.Text });
 
 export const idlService = IDL.Service({
   '_initializeAccessControlWithSecret' : IDL.Func([IDL.Text], [], []),
@@ -81,15 +82,26 @@ export const idlService = IDL.Service({
       [IDL.Nat],
       [],
     ),
+  'debugGetRole' : IDL.Func([], [IDL.Text], ['query']),
   'deleteCase' : IDL.Func([IDL.Nat], [], []),
   'deleteTodoItem' : IDL.Func([IDL.Nat, IDL.Nat], [], []),
+  'ensureUserRole' : IDL.Func([], [], []),
   'exportCases' : IDL.Func([], [IDL.Vec(SurgeryCase)], ['query']),
+  'getCallerUserProfile' : IDL.Func([], [IDL.Opt(UserProfile)], ['query']),
   'getCallerUserRole' : IDL.Func([], [UserRole], ['query']),
   'getCase' : IDL.Func([IDL.Nat], [IDL.Opt(SurgeryCase)], ['query']),
+  'getCaseCount' : IDL.Func([], [IDL.Nat], ['query']),
   'getCasesBySpecies' : IDL.Func([Species], [IDL.Vec(SurgeryCase)], ['query']),
+  'getUserProfile' : IDL.Func(
+      [IDL.Principal],
+      [IDL.Opt(UserProfile)],
+      ['query'],
+    ),
+  'getVersion' : IDL.Func([], [IDL.Text], ['query']),
   'importCases' : IDL.Func([IDL.Vec(SurgeryCase)], [], []),
   'isCallerAdmin' : IDL.Func([], [IDL.Bool], ['query']),
   'listCases' : IDL.Func([], [IDL.Vec(SurgeryCase)], ['query']),
+  'saveCallerUserProfile' : IDL.Func([UserProfile], [], []),
   'toggleCulture' : IDL.Func([IDL.Nat], [IDL.Bool], []),
   'toggleDischargeNotes' : IDL.Func([IDL.Nat], [IDL.Bool], []),
   'toggleHisto' : IDL.Func([IDL.Nat], [IDL.Bool], []),
@@ -172,6 +184,7 @@ export const idlFactory = ({ IDL }) => {
     'species' : Species,
     'cultureComplete' : IDL.Bool,
   });
+  const UserProfile = IDL.Record({ 'name' : IDL.Text });
   
   return IDL.Service({
     '_initializeAccessControlWithSecret' : IDL.Func([IDL.Text], [], []),
@@ -201,19 +214,30 @@ export const idlFactory = ({ IDL }) => {
         [IDL.Nat],
         [],
       ),
+    'debugGetRole' : IDL.Func([], [IDL.Text], ['query']),
     'deleteCase' : IDL.Func([IDL.Nat], [], []),
     'deleteTodoItem' : IDL.Func([IDL.Nat, IDL.Nat], [], []),
+    'ensureUserRole' : IDL.Func([], [], []),
     'exportCases' : IDL.Func([], [IDL.Vec(SurgeryCase)], ['query']),
+    'getCallerUserProfile' : IDL.Func([], [IDL.Opt(UserProfile)], ['query']),
     'getCallerUserRole' : IDL.Func([], [UserRole], ['query']),
     'getCase' : IDL.Func([IDL.Nat], [IDL.Opt(SurgeryCase)], ['query']),
+    'getCaseCount' : IDL.Func([], [IDL.Nat], ['query']),
     'getCasesBySpecies' : IDL.Func(
         [Species],
         [IDL.Vec(SurgeryCase)],
         ['query'],
       ),
+    'getUserProfile' : IDL.Func(
+        [IDL.Principal],
+        [IDL.Opt(UserProfile)],
+        ['query'],
+      ),
+    'getVersion' : IDL.Func([], [IDL.Text], ['query']),
     'importCases' : IDL.Func([IDL.Vec(SurgeryCase)], [], []),
     'isCallerAdmin' : IDL.Func([], [IDL.Bool], ['query']),
     'listCases' : IDL.Func([], [IDL.Vec(SurgeryCase)], ['query']),
+    'saveCallerUserProfile' : IDL.Func([UserProfile], [], []),
     'toggleCulture' : IDL.Func([IDL.Nat], [IDL.Bool], []),
     'toggleDischargeNotes' : IDL.Func([IDL.Nat], [IDL.Bool], []),
     'toggleHisto' : IDL.Func([IDL.Nat], [IDL.Bool], []),

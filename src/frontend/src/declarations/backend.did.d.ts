@@ -45,6 +45,7 @@ export interface ToDoItem {
   'description' : string,
   'complete' : boolean,
 }
+export interface UserProfile { 'name' : string }
 export type UserRole = { 'admin' : null } |
   { 'user' : null } |
   { 'guest' : null };
@@ -75,15 +76,22 @@ export interface _SERVICE {
     ],
     bigint
   >,
+  'debugGetRole' : ActorMethod<[], string>,
   'deleteCase' : ActorMethod<[bigint], undefined>,
   'deleteTodoItem' : ActorMethod<[bigint, bigint], undefined>,
+  'ensureUserRole' : ActorMethod<[], undefined>,
   'exportCases' : ActorMethod<[], Array<SurgeryCase>>,
+  'getCallerUserProfile' : ActorMethod<[], [] | [UserProfile]>,
   'getCallerUserRole' : ActorMethod<[], UserRole>,
   'getCase' : ActorMethod<[bigint], [] | [SurgeryCase]>,
+  'getCaseCount' : ActorMethod<[], bigint>,
   'getCasesBySpecies' : ActorMethod<[Species], Array<SurgeryCase>>,
+  'getUserProfile' : ActorMethod<[Principal], [] | [UserProfile]>,
+  'getVersion' : ActorMethod<[], string>,
   'importCases' : ActorMethod<[Array<SurgeryCase>], undefined>,
   'isCallerAdmin' : ActorMethod<[], boolean>,
   'listCases' : ActorMethod<[], Array<SurgeryCase>>,
+  'saveCallerUserProfile' : ActorMethod<[UserProfile], undefined>,
   'toggleCulture' : ActorMethod<[bigint], boolean>,
   'toggleDischargeNotes' : ActorMethod<[bigint], boolean>,
   'toggleHisto' : ActorMethod<[bigint], boolean>,

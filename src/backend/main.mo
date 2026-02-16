@@ -9,8 +9,6 @@ import Nat "mo:core/Nat";
 import AccessControl "authorization/access-control";
 import MixinAuthorization "authorization/MixinAuthorization";
 
-
-
 actor {
   public type Sex = {
     #male;
@@ -54,9 +52,15 @@ actor {
     todos : [ToDoItem];
   };
 
+  public type UserProfile = {
+    name : Text;
+  };
+
+  let version = "v1.0.1";
   var nextId = 0;
   var nextToDoId = 0;
   let cases = Map.empty<Nat, SurgeryCase>();
+  let userProfiles = Map.empty<Principal, UserProfile>();
 
   let accessControlState = AccessControl.initState();
   include MixinAuthorization(accessControlState);
@@ -65,6 +69,27 @@ actor {
     public func compare(a : SurgeryCase, b : SurgeryCase) : Order.Order {
       Nat.compare(a.id, b.id);
     };
+  };
+
+  public query ({ caller }) func getCallerUserProfile() : async ?UserProfile {
+    if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
+      Runtime.trap("Unauthorized: Only users can view profiles");
+    };
+    userProfiles.get(caller);
+  };
+
+  public query ({ caller }) func getUserProfile(user : Principal) : async ?UserProfile {
+    if (caller != user and not AccessControl.isAdmin(accessControlState, caller)) {
+      Runtime.trap("Unauthorized: Can only view your own profile");
+    };
+    userProfiles.get(user);
+  };
+
+  public shared ({ caller }) func saveCallerUserProfile(profile : UserProfile) : async () {
+    if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
+      Runtime.trap("Unauthorized: Only users can save profiles");
+    };
+    userProfiles.add(caller, profile);
   };
 
   public shared ({ caller }) func createCase(
@@ -391,5 +416,39 @@ actor {
     );
 
     cases.add(caseId, { caseRecord with todos = updatedTodos });
+  };
+
+  public shared ({ caller }) func ensureUserRole() : async () {
+    if (caller.isAnonymous()) {
+      Runtime.trap("Anonymous callers are treated as guests. No user login role is assigned.");
+    };
+
+    switch (AccessControl.getUserRole(accessControlState, caller)) {
+      case (#admin) {
+        ();
+      };
+      case (#user) {
+        ();
+      };
+      case (#guest) {
+        AccessControl.assignRole(accessControlState, caller, caller, #user : AccessControl.UserRole);
+      };
+    };
+  };
+
+  public query ({ caller }) func debugGetRole() : async Text {
+    switch (AccessControl.getUserRole(accessControlState, caller)) {
+      case (#admin) { "admin" };
+      case (#user) { "user" };
+      case (#guest) { "guest" };
+    };
+  };
+
+  public query ({ caller }) func getVersion() : async Text {
+    version;
+  };
+
+  public query ({ caller }) func getCaseCount() : async Nat {
+    cases.size();
   };
 };
